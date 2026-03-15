@@ -2,9 +2,10 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>進化紀元 - Age of Evolution</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>進化紀元：原始戰歌</title>
     <style>
+        /* 全域滿版樣式 - 針對 iPhone 12 Pro Max 最佳化 */
         * {
             margin: 0;
             padding: 0;
@@ -14,1453 +15,364 @@
             user-select: none;
             touch-action: none;
         }
-        
+
         body {
-            background: #0f1419;
+            background: #2c1e14;
             color: #fff;
-            font-family: 'Microsoft JhengHei', sans-serif;
+            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
             overflow: hidden;
             width: 100vw;
             height: 100vh;
         }
-        
-        /* 遊戲容器 - 滿版設計 */
+
+        /* 滿版容器，去除黑邊 */
         #gameContainer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 主畫面 - 原始人主題 */
+        #startMenu {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            overflow: hidden;
-        }
-        
-        /* 縮放提示 */
-        #zoomHint {
-            position: fixed;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.7);
-            padding: 5px 15px;
-            border-radius: 15px;
-            font-size: 12px;
-            color: #888;
+            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=2000&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
             z-index: 1000;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        
-        #zoomHint.active {
-            opacity: 1;
-        }
-        
-        /* 遊戲畫布 - 可移動縮放 */
-        #gameCanvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            transform-origin: center center;
-            transition: none;
-        }
-        
-        /* 頂部狀態列 */
-        #topBar {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 40px;
-            background: rgba(22, 33, 62, 0.95);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0 10px;
-            gap: 15px;
-            z-index: 100;
-            backdrop-filter: blur(5px);
-        }
-        
-        #eraInfo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        #eraName {
-            font-size: 14px;
-            font-weight: bold;
-        }
-        
-        #evolveBtn {
-            padding: 4px 8px;
-            background: #0f3460;
-            border: 2px solid #e94560;
-            color: #fff;
-            border-radius: 10px;
-            cursor: pointer;
-            opacity: 0.5;
-            transition: all 0.3s;
-            font-size: 10px;
-        }
-        
-        #evolveBtn.ready {
-            opacity: 1;
-            animation: pulse 1.5s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { box-shadow: 0 0 5px #e94560; }
-            50% { box-shadow: 0 0 15px #e94560; }
-        }
-        
-        #xpBar {
-            width: 80px;
-            height: 5px;
-            background: #333;
-            border-radius: 3px;
-            overflow: hidden;
-        }
-        
-        .xpFill {
-            height: 100%;
-            background: #ffd700;
-            transition: width 0.3s;
-        }
-        
-        /* 戰場區域 */
-        #battleField {
-            position: absolute;
-            top: 40px;
-            left: 0;
-            right: 0;
-            bottom: 110px;
-            overflow: hidden;
-        }
-        
-        /* 基地樣式 */
-        .base {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
             display: flex;
             flex-direction: column;
-            align-items: center;
-            z-index: 10;
-        }
-        
-        #base {
-            left: 0;
-        }
-        
-        #enemyBase {
-            right: 0;
-        }
-        
-        .baseIcon {
-            width: 45px;
-            height: 45px;
-            display: flex;
-            align-items: center;
             justify-content: center;
+            align-items: center;
+        }
+
+        .menuTitle {
+            font-size: 48px;
+            color: #f1c40f;
+            text-shadow: 4px 4px 0px #7f8c8d, 0 0 20px rgba(0,0,0,0.8);
+            margin-bottom: 40px;
+            letter-spacing: 5px;
+        }
+
+        .startBtn {
+            padding: 15px 50px;
             font-size: 24px;
-            transition: all 0.3s;
+            background: #e67e22;
+            border: 4px solid #d35400;
+            border-radius: 50px;
+            color: #fff;
+            cursor: pointer;
+            box-shadow: 0 10px 0 #a04000;
+            transition: 0.1s;
         }
-        
-        .baseHealthBar {
-            width: 55px;
-            height: 5px;
-            background: #333;
-            border-radius: 3px;
+
+        .startBtn:active {
+            transform: translateY(5px);
+            box-shadow: 0 5px 0 #a04000;
+        }
+
+        /* 遊戲畫布與戰場 */
+        #gameCanvas {
+            flex: 1;
+            position: relative;
+            background: #3e2723;
             overflow: hidden;
-            margin-bottom: 3px;
         }
-        
-        .baseHealthFill {
-            height: 100%;
-            transition: width 0.3s;
-        }
-        
-        .baseHealthFill.friendly {
-            background: linear-gradient(90deg, #6bcf7f, #4a9c5d);
-        }
-        
-        .baseHealthFill.enemy {
-            background: linear-gradient(90deg, #e94560, #c73e54);
-        }
-        
-        /* 時代風格 - 我方基地 */
-        .era-base-1 { background: radial-gradient(circle, #fff 0%, #888 100%); clip-path: circle(50%); }
-        .era-base-2 { background: linear-gradient(135deg, #a8d8ea 0%, #5d8aa8 100%); clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
-        .era-base-3 { background: conic-gradient(from 0deg, #ff6b6b, #ffaa00, #ff6b6b); clip-path: circle(50%); }
-        .era-base-4 { background: radial-gradient(circle, #ffd93d 0%, #ff8c00 100%); clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
-        .era-base-5 { background: radial-gradient(circle at 30% 30%, #6bcf7f, #2d8a4e); border-radius: 50%; box-shadow: 0 0 10px #6bcf7f; }
-        .era-base-6 { background: linear-gradient(45deg, #a8e6cf, #7fcdcd); clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%); }
-        .era-base-7 { background: radial-gradient(circle, #7fcdcd 0%, #4a9c9c 100%); clip-path: ellipse(50% 40% at 50% 50%); }
-        .era-base-8 { background: linear-gradient(180deg, #5d8aa8 0%, #2d4a5a 100%); border-radius: 40% 40% 50% 50%; }
-        .era-base-9 { background: radial-gradient(circle, #b8e6b8 0%, #6bcf7f 100%); border-radius: 50%; border: 3px solid #4a9c5d; }
-        .era-base-10 { background: linear-gradient(45deg, #98d8c8, #7fcdcd); clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%); }
-        .era-base-11 { background: radial-gradient(circle, #ffd700 0%, #daa520 100%); border-radius: 50%; box-shadow: 0 0 15px #ffd700; }
-        .era-base-12 { background: linear-gradient(90deg, #ff8c00, #ff6b00); clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
-        .era-base-13 { background: radial-gradient(circle, #daa520 0%, #b8860b 100%); border-radius: 50%; border: 2px dashed #ffd700; }
-        .era-base-14 { background: linear-gradient(45deg, #cd853f, #8b4513); clip-path: polygon(20% 0%, 80% 0%, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0% 80%, 0% 20%); }
-        .era-base-15 { background: radial-gradient(circle, #8fbc8f 0%, #556b2f 100%); border-radius: 30%; }
-        .era-base-16 { background: linear-gradient(135deg, #b8860b, #8b6914); clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); border: 2px solid #daa520; }
-        .era-base-17 { background: radial-gradient(circle, #f0f0f0 0%, #a0a0a0 100%); border-radius: 50%; box-shadow: inset 0 0 10px #666; }
-        .era-base-18 { background: linear-gradient(180deg, #4169e1 0%, #0000cd 100%); clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); box-shadow: 0 0 15px #4169e1; }
-        .era-base-19 { background: conic-gradient(from 0deg, #00ced1, #20b2aa, #00ced1); clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
-        .era-base-20 { background: radial-gradient(circle, #7fffd4 0%, #00fa9a 50%, #008b8b 100%); border-radius: 50%; box-shadow: 0 0 20px #7fffd4, inset 0 0 10px #fff; }
-        
-        /* 時代風格 - 敵方基地 */
-        .enemy-base-1 { background: radial-gradient(circle, #ff6b6b 0%, #8b0000 100%); clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
-        .enemy-base-2 { background: linear-gradient(135deg, #ff8c00, #8b4513); clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
-        .enemy-base-3 { background: radial-gradient(circle, #ffd700 0%, #b8860b 100%); clip-path: circle(50%); border: 2px solid #8b4513; }
-        .enemy-base-4 { background: linear-gradient(45deg, #ff6b6b, #dc143c); clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%); }
-        .enemy-base-5 { background: radial-gradient(circle, #ff1493 0%, #8b008b 100%); border-radius: 50%; box-shadow: 0 0 10px #ff1493; }
-        .enemy-base-6 { background: conic-gradient(from 0deg, #ff6b6b, #ff8c00, #ffd700, #ff6b6b); clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%); }
-        .enemy-base-7 { background: linear-gradient(180deg, #dc143c 0%, #8b0000 100%); border-radius: 40% 40% 50% 50%; }
-        .enemy-base-8 { background: radial-gradient(circle, #ff4500 0%, #8b0000 100%); clip-path: ellipse(50% 40% at 50% 50%); }
-        .enemy-base-9 { background: linear-gradient(45deg, #ff6347, #ff0000); border-radius: 50%; border: 3px solid #8b0000; }
-        .enemy-base-10 { background: radial-gradient(circle, #ff69b4 0%, #c71585 100%); clip-path: polygon(20% 0%, 80% 0%, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0% 80%, 0% 20%); }
-        .enemy-base-11 { background: linear-gradient(90deg, #ff1493, #ff69b4); border-radius: 50%; box-shadow: 0 0 15px #ff1493; }
-        .enemy-base-12 { background: conic-gradient(from 0deg, #ff0000, #ff6b6b, #ff0000); clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
-        .enemy-base-13 { background: radial-gradient(circle, #dc143c 0%, #8b0000 100%); border-radius: 50%; border: 2px dashed #ff6b6b; }
-        .enemy-base-14 { background: linear-gradient(135deg, #b22222, #800000); clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
-        .enemy-base-15 { background: radial-gradient(circle, #cd5c5c 0%, #8b0000 100%); border-radius: 30%; }
-        .enemy-base-16 { background: linear-gradient(45deg, #ff4500, #dc143c); clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%); border: 2px solid #ff6b6b; }
-        .enemy-base-17 { background: radial-gradient(circle, #ff6347 0%, #8b0000 100%); border-radius: 50%; box-shadow: inset 0 0 10px #8b0000; }
-        .enemy-base-18 { background: linear-gradient(180deg, #ff1493 0%, #8b008b 100%); clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); box-shadow: 0 0 15px #ff1493; }
-        .enemy-base-19 { background: conic-gradient(from 0deg, #ff69b4, #ff1493, #ff69b4); clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
-        .enemy-base-20 { background: radial-gradient(circle, #ff0000 0%, #8b0000 50%, #4a0000 100%); border-radius: 50%; box-shadow: 0 0 20px #ff0000, inset 0 0 10px #000; }
-        
-        /* 單位樣式 */
-        .unit {
-            position: absolute;
-            transition: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 5;
-        }
-        
-        .unit.friendly {
-            filter: drop-shadow(0 0 2px currentColor);
-        }
-        
-        .unit.enemy {
-            filter: drop-shadow(0 0 2px #e94560);
-        }
-        
-        .unit-shape {
-            width: 100%;
-            height: 100%;
-        }
-        
-        /* 攻擊效果 */
-        .attack {
-            position: absolute;
-            pointer-events: none;
-            z-index: 6;
-        }
-        
-        /* 底部控制區 */
-        #bottomBar {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 110px;
-            background: rgba(22, 33, 62, 0.95);
-            border-top: 2px solid #0f3460;
-            display: flex;
-            flex-direction: column;
-            padding: 8px;
-            gap: 8px;
+
+        /* 頂部與底部列 - 適配 iPhone 寬螢幕 */
+        #topBar, #bottomBar {
+            background: rgba(44, 30, 20, 0.9);
+            padding: env(safe-area-inset-top) 20px 10px 20px;
             z-index: 100;
-            backdrop-filter: blur(5px);
         }
-        
-        /* 單位生產列 */
+
+        #topBar { height: auto; display: flex; justify-content: space-between; border-bottom: 2px solid #5d4037; }
+        #bottomBar { 
+            height: 140px; 
+            border-top: 2px solid #5d4037;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        /* 資源顯示 */
+        .resourceBox { display: flex; align-items: center; gap: 10px; font-size: 20px; color: #ffd700; }
+
+        /* 單位列表 */
         #unitRow {
             display: flex;
-            gap: 8px;
-            justify-content: center;
-            flex-wrap: wrap;
+            gap: 12px;
             overflow-x: auto;
+            padding: 10px 0;
+            justify-content: center;
         }
-        
+
         .unitCard {
-            width: 60px;
-            height: 75px;
-            background: #0f3460;
-            border: 2px solid #533483;
-            border-radius: 6px;
+            width: 70px;
+            height: 90px;
+            background: #5d4037;
+            border: 3px solid #3e2723;
+            border-radius: 12px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            position: relative;
             flex-shrink: 0;
         }
-        
-        .unitCard:hover:not(.locked):not(.producing) {
-            border-color: #e94560;
-            transform: translateY(-2px);
-        }
-        
-        .unitCard.locked {
-            opacity: 0.4;
-            cursor: not-allowed;
-            background: repeating-linear-gradient(
-                45deg,
-                #0f3460,
-                #0f3460 10px,
-                #1a1a2e 10px,
-                #1a1a2e 20px
-            );
-        }
-        
-        .unitCard.producing {
-            border-color: #ffd700;
-        }
-        
-        .unitCard.no-gold {
-            border-color: #ff0000;
-            animation: shake 0.3s;
-        }
-        
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-3px); }
-            75% { transform: translateX(3px); }
-        }
-        
-        .unitIcon {
-            width: 24px;
-            height: 24px;
-            margin-bottom: 2px;
-        }
-        
-        .unitName {
-            font-size: 8px;
-            text-align: center;
-            line-height: 1;
-            margin-bottom: 2px;
-        }
-        
-        .unitCost {
-            font-size: 10px;
-            color: #ffd700;
-        }
-        
-        .produceBar {
+
+        .unitIcon { font-size: 24px; }
+        .unitCost { font-size: 14px; color: #ffd700; font-weight: bold; }
+
+        /* 戰場單位 */
+        .unit {
             position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: #333;
-            border-radius: 0 0 4px 4px;
+            font-size: 30px;
+            transition: left 0.1s linear, right 0.1s linear;
         }
-        
-        .produceFill {
-            height: 100%;
-            background: #ffd700;
-            width: 0%;
-            transition: width 0.1s linear;
-            border-radius: 0 0 0 4px;
-        }
-        
-        /* 控制和資源區 */
-        #controlRow {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 10px;
-        }
-        
-        #resourceDisplay {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
-        
-        .resource {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 16px;
-        }
-        
-        .goldIcon {
-            color: #ffd700;
-            font-size: 18px;
-            text-shadow: 0 0 5px #ffd700;
-        }
-        
-        #speedControl {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        #speedSlider {
-            width: 100px;
-            height: 5px;
-            -webkit-appearance: none;
-            background: #333;
-            border-radius: 3px;
-            outline: none;
-        }
-        
-        #speedSlider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 12px;
-            height: 12px;
-            background: #e94560;
-            border-radius: 50%;
-            cursor: pointer;
-        }
-        
-        /* 暫停按鈕 */
-        #pauseBtn {
-            background: transparent;
-            border: none;
-            color: #fff;
-            font-size: 18px;
-            cursor: pointer;
-            padding: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        /* 進化選擇彈窗 */
-        #evolveModal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.9);
-            z-index: 200;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        #evolveModal.active {
-            display: flex;
-        }
-        
-        .modalContent {
-            background: #16213e;
-            border: 2px solid #e94560;
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            max-width: 320px;
-            width: 90%;
-        }
-        
-        .modalTitle {
-            font-size: 18px;
-            margin-bottom: 15px;
-        }
-        
-        .evolveOptions {
+
+        /* 基地 */
+        .base {
+            position: absolute;
+            bottom: 20%;
+            width: 80px;
+            height: 120px;
+            background: #795548;
+            border-radius: 10px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            margin: 15px 0;
-        }
-        
-        .evolveOption {
-            padding: 12px;
-            background: #0f3460;
-            border: 2px solid #533483;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .evolveOption:hover {
-            border-color: #e94560;
-            background: #1a4a7a;
-        }
-        
-        .stayOption {
-            margin-top: 8px;
-            padding: 8px;
-            color: #888;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        
-        /* 時代視覺效果 */
-        .era-1 { color: #fff; }
-        .era-2 { color: #a8d8ea; }
-        .era-3 { color: #ff6b6b; }
-        .era-4 { color: #ffd93d; }
-        .era-5 { color: #6bcf7f; }
-        .era-6 { color: #a8e6cf; }
-        .era-7 { color: #7fcdcd; }
-        .era-8 { color: #5d8aa8; }
-        .era-9 { color: #b8e6b8; }
-        .era-10 { color: #98d8c8; }
-        .era-11 { color: #ffd700; }
-        .era-12 { color: #ff8c00; }
-        .era-13 { color: #daa520; }
-        .era-14 { color: #cd853f; }
-        .era-15 { color: #8fbc8f; }
-        .era-16 { color: #b8860b; }
-        .era-17 { color: #f0f0f0; }
-        .era-18 { color: #4169e1; }
-        .era-19 { color: #00ced1; }
-        .era-20 { color: #7fffd4; }
-        
-        /* 遊戲結束畫面 */
-        #gameOverScreen {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.95);
-            z-index: 300;
-            justify-content: center;
             align-items: center;
-            flex-direction: column;
+            justify-content: flex-end;
         }
-        
-        #gameOverScreen.active {
-            display: flex;
-        }
-        
-        .gameOverTitle {
-            font-size: 32px;
-            margin-bottom: 15px;
-        }
-        
-        .gameOverStats {
-            font-size: 16px;
-            margin-bottom: 8px;
-        }
-        
-        .restartBtn {
-            padding: 12px 30px;
-            font-size: 16px;
-            background: #e94560;
-            border: none;
-            border-radius: 8px;
-            color: #fff;
-            cursor: pointer;
-            margin-top: 20px;
-        }
+        #playerBase { left: 20px; }
+        #enemyBase { right: 20px; background: #8d6e63; }
+
+        .healthBar { width: 100%; height: 8px; background: #333; border-radius: 4px; overflow: hidden; margin-bottom: 5px; }
+        .healthFill { height: 100%; transition: width 0.3s; }
+        .p-health { background: #2ecc71; }
+        .e-health { background: #e74c3c; }
+
+        .eraTag { position: absolute; top: -30px; font-size: 12px; width: 100px; text-align: center; }
     </style>
 </head>
 <body>
-    <!-- 縮放提示 -->
-    <div id="zoomHint">雙指縮放調整視角</div>
-    
-    <!-- 遊戲容器 -->
-    <div id="gameContainer">
-        <!-- 遊戲畫布 - 可移動縮放 -->
-        <div id="gameCanvas">
-            <!-- 頂部狀態列 -->
-            <div id="topBar">
-                <div id="eraInfo">
-                    <span id="eraName">時代 1：虛無</span>
-                    <button id="evolveBtn" onclick="showEvolveModal()">進化 ▶</button>
-                    <div id="xpBar">
-                        <div class="xpFill" id="xpFill" style="width: 0%"></div>
-                    </div>
-                    <span id="xpText" style="font-size: 10px;">0/100</span>
-                </div>
-            </div>
-            
-            <!-- 戰場區域 -->
-            <div id="battleField">
-                <!-- 我方基地 -->
-                <div class="base" id="base">
-                    <div class="baseHealthBar">
-                        <div class="baseHealthFill friendly" id="healthFill" style="width: 100%"></div>
-                    </div>
-                    <div class="baseIcon era-base-1" id="baseIcon"></div>
-                </div>
-                
-                <!-- 敵方基地 -->
-                <div class="base" id="enemyBase">
-                    <div class="baseHealthBar">
-                        <div class="baseHealthFill enemy" id="enemyHealthFill" style="width: 100%"></div>
-                    </div>
-                    <div class="baseIcon enemy-base-1" id="enemyBaseIcon"></div>
-                </div>
-            </div>
-            
-            <!-- 底部控制區 -->
-            <div id="bottomBar">
-                <!-- 單位生產列 -->
-                <div id="unitRow"></div>
-                
-                <!-- 控制區 -->
-                <div id="controlRow">
-                    <div id="resourceDisplay">
-                        <div class="resource">
-                            <span class="goldIcon">🪙</span>
-                            <span id="goldDisplay">1000</span>
-                        </div>
-                    </div>
-                    
-                    <div id="speedControl">
-                        <span style="font-size: 11px;">速度:</span>
-                        <input type="range" id="speedSlider" min="1" max="10" value="1" step="0.5">
-                        <span id="speedText" style="font-size: 11px; min-width: 25px;">1x</span>
-                        <button id="pauseBtn" onclick="togglePause()">⏸️</button>
-                    </div>
-                </div>
-            </div>
+
+<div id="startMenu">
+    <div class="menuTitle">進化紀元</div>
+    <button class="startBtn" onclick="startGame()">開始遊戲</button>
+</div>
+
+<div id="gameContainer">
+    <div id="topBar">
+        <div class="resourceBox">🪙 <span id="goldDisplay">500</span></div>
+        <div id="eraInfo">
+            <span id="eraName">時代 1：石器時代</span>
+            <button id="evolveBtn" onclick="playerEvolve()" style="margin-left:10px; padding: 5px 10px; background: #e67e22; border:none; border-radius:5px; color:#fff;">晉升時代 (5000)</button>
         </div>
-    </div>
-    
-    <!-- 進化選擇彈窗 -->
-    <div id="evolveModal">
-        <div class="modalContent">
-            <div class="modalTitle">時代晉升</div>
-            <div style="font-size: 13px; margin-bottom: 5px;">當前：<span id="currentEraName">虛無</span></div>
-            <div style="font-size: 11px; color: #888; margin-bottom: 15px;">XP：<span id="currentXP">0</span>/<span id="neededXP">100</span></div>
-            
-            <div class="evolveOptions">
-                <div class="evolveOption" onclick="evolveNext()">
-                    <div style="font-size: 13px;">進化到下一時代</div>
-                    <div id="nextEraName" style="color: #ffd700; margin-top: 4px; font-size: 11px;">時代 2：時空織造</div>
-                </div>
-                <div class="evolveOption" onclick="enhanceCurrent()">
-                    <div style="font-size: 13px;">強化當前時代</div>
-                    <div style="color: #aaa; margin-top: 4px; font-size: 10px;">等級 <span id="currentLevel">1</span> → <span id="nextLevel">2</span>（數值+20%）</div>
-                </div>
-            </div>
-            
-            <div class="stayOption" onclick="closeEvolveModal()">暫時停留，繼續累積</div>
-        </div>
-    </div>
-    
-    <!-- 遊戲結束畫面 -->
-    <div id="gameOverScreen">
-        <div class="gameOverTitle" id="resultTitle">遊戲結束</div>
-        <div class="gameOverStats">存活到關卡 <span id="finalWave">1</span></div>
-        <div class="gameOverStats">達到時代 <span id="finalEra">1</span>： <span id="finalEraName">虛無</span></div>
-        <button class="restartBtn" onclick="location.reload()">重新開始</button>
     </div>
 
-    <script>
-        // ==================== 雙指縮放與移動 ====================
-        
-        const gameCanvas = document.getElementById('gameCanvas');
-        const zoomHint = document.getElementById('zoomHint');
-        const gameContainer = document.getElementById('gameContainer');
-        
-        let viewState = {
-            scale: 1,
-            x: 0,
-            y: 0,
-            minScale: 0.5,
-            maxScale: 3,
-            isDragging: false,
-            lastX: 0,
-            lastY: 0
-        };
-        
-        let touchState = {
-            touches: [],
-            lastDistance: 0,
-            lastCenterX: 0,
-            lastCenterY: 0
-        };
-        
-        // 顯示縮放提示
-        setTimeout(() => {
-            zoomHint.classList.add('active');
-            setTimeout(() => zoomHint.classList.remove('active'), 3000);
+    <div id="gameCanvas">
+        <div id="playerBase" class="base">
+            <div class="eraTag" id="pEraTag">石器時代</div>
+            <div class="healthBar"><div id="pHealthFill" class="healthFill p-health" style="width: 100%"></div></div>
+            <div style="font-size: 40px;">🛖</div>
+        </div>
+
+        <div id="enemyBase" class="base">
+            <div class="eraTag" id="eEraTag">石器時代</div>
+            <div class="healthBar"><div id="eHealthFill" class="healthFill e-health" style="width: 100%"></div></div>
+            <div style="font-size: 40px;">🧱</div>
+        </div>
+    </div>
+
+    <div id="bottomBar">
+        <div id="unitRow">
+            </div>
+    </div>
+</div>
+
+<script>
+    // ================= 配置與數據 =================
+    const CONFIG = {
+        playerStartGold: 500,
+        enemyStartGold: 2000,
+        enemyIncomePerSec: 50,
+        baseEvolveCost: 5000,
+        evolveMultiplier: 6,
+        baseMaxHealth: 2000
+    };
+
+    const ERAS = [
+        { name: "石器時代", icon: "🛖", units: [{name: "棍棒手", cost: 50, icon: "🦴"}, {name: "投石兵", cost: 100, icon: "🪨"}] },
+        { name: "青銅時代", icon: "🛡️", units: [{name: "矛兵", cost: 300, icon: "🔱"}, {name: "戰車", cost: 800, icon: "🐎"}] },
+        { name: "鐵器時代", icon: "⚔️", units: [{name: "劍士", cost: 1500, icon: "🗡️"}, {name: "弩兵", cost: 3000, icon: "🏹"}] },
+        { name: "中世紀", icon: "🏰", units: [{name: "騎士", cost: 10000, icon: "🏇"}, {name: "投石機", cost: 25000, icon: "☄️"}] },
+        { name: "文藝復興", icon: "🎨", units: [{name: "火槍手", cost: 80000, icon: "🔫"}, {name: "加農炮", cost: 200000, icon: "💣"}] }
+    ];
+
+    let state = {
+        gold: CONFIG.playerStartGold,
+        eGold: CONFIG.enemyStartGold,
+        pEra: 0,
+        eEra: 0,
+        pHealth: CONFIG.baseMaxHealth,
+        eHealth: CONFIG.baseMaxHealth,
+        pUnits: [],
+        eUnits: [],
+        isRunning: false
+    };
+
+    // ================= 核心功能 =================
+
+    function startGame() {
+        document.getElementById('startMenu').style.display = 'none';
+        state.isRunning = true;
+        updateUI();
+        gameLoop();
+        // 敵方自動生成邏輯
+        setInterval(enemyAI, 1000);
+        // 資源每秒增加
+        setInterval(() => {
+            if(!state.isRunning) return;
+            state.gold += 10 + (state.pEra * 20);
+            state.eGold += CONFIG.enemyIncomePerSec;
+            updateUI();
         }, 1000);
+    }
+
+    function spawnUnit(isPlayer, unitIndex) {
+        const era = isPlayer ? ERAS[state.pEra] : ERAS[state.eEra];
+        const unitData = era.units[unitIndex];
         
-        // 觸控事件處理
-        gameCanvas.addEventListener('touchstart', handleTouchStart, { passive: false });
-        gameCanvas.addEventListener('touchmove', handleTouchMove, { passive: false });
-        gameCanvas.addEventListener('touchend', handleTouchEnd, { passive: false });
-        
-        // 滑鼠事件支援
-        let mouseDown = false;
-        gameCanvas.addEventListener('mousedown', (e) => {
-            mouseDown = true;
-            viewState.isDragging = true;
-            viewState.lastX = e.clientX;
-            viewState.lastY = e.clientY;
-        });
-        
-        gameCanvas.addEventListener('mousemove', (e) => {
-            if (!mouseDown) return;
-            const dx = e.clientX - viewState.lastX;
-            const dy = e.clientY - viewState.lastY;
-            viewState.x += dx;
-            viewState.y += dy;
-            viewState.lastX = e.clientX;
-            viewState.lastY = e.clientY;
-            updateTransform();
-        });
-        
-        gameCanvas.addEventListener('mouseup', () => {
-            mouseDown = false;
-            viewState.isDragging = false;
-        });
-        
-        gameCanvas.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            const delta = e.deltaY > 0 ? 0.9 : 1.1;
-            const newScale = Math.max(viewState.minScale, Math.min(viewState.maxScale, viewState.scale * delta));
-            viewState.scale = newScale;
-            updateTransform();
-        });
-        
-        function handleTouchStart(e) {
-            // 如果點擊在UI元素上，不處理縮放
-            if (e.target.closest('#topBar') || e.target.closest('#bottomBar') || e.target.closest('.base')) {
-                return;
-            }
-            
-            e.preventDefault();
-            touchState.touches = Array.from(e.touches);
-            
-            if (touchState.touches.length === 1) {
-                viewState.isDragging = true;
-                viewState.lastX = touchState.touches[0].clientX;
-                viewState.lastY = touchState.touches[0].clientY;
-            } else if (touchState.touches.length === 2) {
-                viewState.isDragging = false;
-                const dx = touchState.touches[0].clientX - touchState.touches[1].clientX;
-                const dy = touchState.touches[0].clientY - touchState.touches[1].clientY;
-                touchState.lastDistance = Math.sqrt(dx * dx + dy * dy);
-                
-                touchState.lastCenterX = (touchState.touches[0].clientX + touchState.touches[1].clientX) / 2;
-                touchState.lastCenterY = (touchState.touches[0].clientY + touchState.touches[1].clientY) / 2;
-            }
+        if (isPlayer) {
+            if (state.gold < unitData.cost) return;
+            state.gold -= unitData.cost;
+        } else {
+            if (state.eGold < unitData.cost) return;
+            state.eGold -= unitData.cost;
         }
+
+        const unitEl = document.createElement('div');
+        unitEl.className = `unit ${isPlayer ? 'friendly' : 'enemy'}`;
+        unitEl.innerHTML = unitData.icon;
+        unitEl.style.bottom = '20%';
         
-        function handleTouchMove(e) {
-            // 如果點擊在UI元素上，不處理縮放
-            if (e.target.closest('#topBar') || e.target.closest('#bottomBar') || e.target.closest('.base')) {
-                return;
-            }
-            
-            e.preventDefault();
-            const touches = Array.from(e.touches);
-            
-            if (touches.length === 1 && viewState.isDragging) {
-                const dx = touches[0].clientX - viewState.lastX;
-                const dy = touches[0].clientY - viewState.lastY;
-                viewState.x += dx;
-                viewState.y += dy;
-                viewState.lastX = touches[0].clientX;
-                viewState.lastY = touches[0].clientY;
-                updateTransform();
-                
-            } else if (touches.length === 2) {
-                const dx = touches[0].clientX - touches[1].clientX;
-                const dy = touches[0].clientY - touches[1].clientY;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-                if (touchState.lastDistance > 0) {
-                    const scaleDelta = distance / touchState.lastDistance;
-                    const newScale = Math.max(viewState.minScale, Math.min(viewState.maxScale, viewState.scale * scaleDelta));
-                    viewState.scale = newScale;
-                }
-                touchState.lastDistance = distance;
-                
-                const centerX = (touches[0].clientX + touches[1].clientX) / 2;
-                const centerY = (touches[0].clientY + touches[1].clientY) / 2;
-                
-                if (touchState.lastCenterX !== 0) {
-                    viewState.x += (centerX - touchState.lastCenterX);
-                    viewState.y += (centerY - touchState.lastCenterY);
-                }
-                
-                touchState.lastCenterX = centerX;
-                touchState.lastCenterY = centerY;
-                
-                updateTransform();
-            }
-        }
-        
-        function handleTouchEnd(e) {
-            touchState.touches = Array.from(e.touches);
-            
-            if (touchState.touches.length === 0) {
-                viewState.isDragging = false;
-                touchState.lastDistance = 0;
-                touchState.lastCenterX = 0;
-                touchState.lastCenterY = 0;
-            } else if (touchState.touches.length === 1) {
-                viewState.isDragging = true;
-                viewState.lastX = touchState.touches[0].clientX;
-                viewState.lastY = touchState.touches[0].clientY;
-                touchState.lastDistance = 0;
-            }
-        }
-        
-        function updateTransform() {
-            gameCanvas.style.transform = `translate(${viewState.x}px, ${viewState.y}px) scale(${viewState.scale})`;
-        }
-        
-        // 雙擊重置
-        let lastTap = 0;
-        gameCanvas.addEventListener('touchend', (e) => {
-            if (e.target.closest('#topBar') || e.target.closest('#bottomBar') || e.target.closest('.base')) {
-                return;
-            }
-            
-            const now = Date.now();
-            if (now - lastTap < 300) {
-                viewState.scale = 1;
-                viewState.x = 0;
-                viewState.y = 0;
-                updateTransform();
-                zoomHint.textContent = '視角已重置';
-                zoomHint.classList.add('active');
-                setTimeout(() => {
-                    zoomHint.classList.remove('active');
-                    zoomHint.textContent = '雙指縮放調整視角';
-                }, 1000);
-            }
-            lastTap = now;
-        });
-        
-        // ==================== 遊戲數據 ====================
-        
-        const ERAS = [
-            { name: "虛無", color: "#fff", units: ["可能性之種", "虛無觸鬚"] },
-            { name: "時空織造", color: "#a8d8ea", units: ["時間線", "空間褶皺"] },
-            { name: "物質誕生", color: "#ff6b6b", units: ["夸克三重奏", "膠子束縛"] },
-            { name: "能量湧動", color: "#ffd93d", units: ["光子群", "電磁脈衝"] },
-            { name: "原子鍛造", color: "#6bcf7f", units: ["電子雲", "質子核"] },
-            { name: "分子交響", color: "#a8e6cf", units: ["自由基", "酶催化劑"] },
-            { name: "大分子湯", color: "#7fcdcd", units: ["氨基酸鏈", "脂質膜"] },
-            { name: "原核霸權", color: "#5d8aa8", units: ["桿菌戰士", "古菌極端者"] },
-            { name: "真核革命", color: "#b8e6b8", units: ["細胞核指揮官", "線粒體工兵"] },
-            { name: "多細胞協作", color: "#98d8c8", units: ["上皮組織", "間充質細胞"] },
-            { name: "神經脈衝", color: "#ffd700", units: ["感覺神經元", "運動神經元"] },
-            { name: "反射弧", color: "#ff8c00", units: ["感受器", "效應器"] },
-            { name: "學習記憶", color: "#daa520", units: ["短期記憶", "長期記憶"] },
-            { name: "工具符號", color: "#cd853f", units: ["工具使用者", "符號傳遞者"] },
-            { name: "農業定居", color: "#8fbc8f", units: ["農民戰士", "馴化獸"] },
-            { name: "冶金鍛造", color: "#b8860b", units: ["青銅戰士", "鐵匠"] },
-            { name: "蒸汽動力", color: "#f0f0f0", units: ["蒸汽步兵", "差分機師"] },
-            { name: "電氣文明", color: "#4169e1", units: ["電擊兵", "無線電員"] },
-            { name: "數位覺醒", color: "#00ced1", units: ["像素戰士", "位元流"] },
-            { name: "網路基因", color: "#7fffd4", units: ["賽博格", "基因駭客"] }
-        ];
-        
-        // ==================== 遊戲狀態 ====================
-        
-        let gameState = {
-            era: 1,
-            eraLevel: 1,
-            xp: 0,
-            xpNeeded: 100,
-            baseHealth: 1000,
-            maxHealth: 1000,
-            enemyHealth: 1000,
-            enemyMaxHealth: 1000,
-            gold: 1000,
-            gameSpeed: 1,
-            paused: false,
-            wave: 1,
-            units: [],
-            enemyUnits: [],
-            lastTime: 0,
-            gameOver: false,
-            gameTime: 0,
-            
-            enemyEra: 1,
-            enemyGold: 0,
-            enemyBaseIncome: 5
+        const unitObj = {
+            el: unitEl,
+            pos: isPlayer ? 100 : (window.innerWidth - 100),
+            hp: 100 * (isPlayer ? state.pEra + 1 : state.eEra + 1),
+            dmg: 10 * (isPlayer ? state.pEra + 1 : state.eEra + 1),
+            isPlayer: isPlayer
         };
+
+        document.getElementById('gameCanvas').appendChild(unitEl);
+        if(isPlayer) state.pUnits.push(unitObj);
+        else state.eUnits.push(unitObj);
         
-        let productionState = {
-            isProducing: false,
-            currentUnit: null,
-            progress: 0
-        };
-        
-        // ==================== 初始化 ====================
-        
-        function init() {
-            updateUI();
-            renderUnitCards();
-            updateBaseAppearance();
-            
-            document.getElementById('speedSlider').addEventListener('input', (e) => {
-                gameState.gameSpeed = parseFloat(e.target.value);
-                document.getElementById('speedText').textContent = gameState.gameSpeed + 'x';
-            });
-            
-            requestAnimationFrame(gameLoop);
-            
-            setInterval(() => {
-                if (!gameState.paused && !gameState.gameOver) {
-                    spawnEnemyUnit();
-                }
-            }, 2500);
-            
-            setInterval(() => {
-                if (!gameState.paused && !gameState.gameOver) {
-                    gameState.gameTime++;
-                    const timeBonus = 1 + (gameState.gameTime / 60) * 0.05;
-                    const eraMultiplier = Math.pow(2, gameState.enemyEra - 1);
-                    const income = gameState.enemyBaseIncome * eraMultiplier * timeBonus;
-                    gameState.enemyGold += income;
-                    enemyAIProduce();
-                }
-            }, 1000);
-        }
-        
-        function enemyAIProduce() {
-            const costs = [30, 50, 70, 90, 110];
-            const affordable = costs.filter((c, i) => c <= gameState.enemyGold && i < 2);
-            
-            if (affordable.length > 0) {
-                const cost = affordable[affordable.length - 1];
-                const index = costs.indexOf(cost);
-                gameState.enemyGold -= cost;
-                spawnEnemyUnit(index);
-            }
-        }
-        
-        // ==================== UI 更新 ====================
-        
-        function updateUI() {
-            const era = ERAS[gameState.era - 1];
-            
-            document.getElementById('eraName').textContent = `時代 ${gameState.era}：${era.name}`;
-            document.getElementById('eraName').style.color = era.color;
-            
-            document.getElementById('healthFill').style.width = Math.max(0, (gameState.baseHealth / gameState.maxHealth) * 100) + '%';
-            document.getElementById('enemyHealthFill').style.width = Math.max(0, (gameState.enemyHealth / gameState.enemyMaxHealth) * 100) + '%';
-            
-            document.getElementById('goldDisplay').textContent = Math.floor(gameState.gold);
-            
-            const xpPercent = Math.min(100, (gameState.xp / gameState.xpNeeded) * 100);
-            document.getElementById('xpFill').style.width = xpPercent + '%';
-            document.getElementById('xpText').textContent = `${Math.floor(gameState.xp)}/${gameState.xpNeeded}`;
-            
-            const evolveBtn = document.getElementById('evolveBtn');
-            if (gameState.xp >= gameState.xpNeeded && gameState.era < 20) {
-                evolveBtn.classList.add('ready');
-            } else {
-                evolveBtn.classList.remove('ready');
-            }
-            
-            updateProductionUI();
-        }
-        
-        function updateBaseAppearance() {
-            const baseIcon = document.getElementById('baseIcon');
-            const enemyBaseIcon = document.getElementById('enemyBaseIcon');
-            
-            for (let i = 1; i <= 20; i++) {
-                baseIcon.classList.remove(`era-base-${i}`);
-                enemyBaseIcon.classList.remove(`enemy-base-${i}`);
-            }
-            
-            baseIcon.classList.add(`era-base-${gameState.era}`);
-            enemyBaseIcon.classList.add(`enemy-base-${gameState.enemyEra}`);
-        }
-        
-        function renderUnitCards() {
-            const container = document.getElementById('unitRow');
-            container.innerHTML = '';
-            
-            const era = ERAS[gameState.era - 1];
-            const unitCosts = [30, 50, 70, 90, 110];
-            
-            era.units.forEach((unitName, index) => {
-                const cost = unitCosts[index] || (30 + index * 20);
-                const isLocked = index >= 2 && gameState.eraLevel < 2;
-                const isProducing = productionState.isProducing && productionState.currentUnit === index;
-                
-                const card = document.createElement('div');
-                card.className = `unitCard ${isLocked ? 'locked' : ''} ${isProducing ? 'producing' : ''}`;
-                card.id = `unit-${index}`;
-                card.onclick = () => produceUnit(index, cost);
-                
-                const icon = document.createElement('div');
-                icon.className = 'unitIcon';
-                icon.innerHTML = getUnitSVG(gameState.era, index);
-                icon.style.color = era.color;
-                
-                const name = document.createElement('div');
-                name.className = 'unitName';
-                name.textContent = unitName;
-                
-                const costDiv = document.createElement('div');
-                costDiv.className = 'unitCost';
-                costDiv.textContent = `🪙${cost}`;
-                
-                const bar = document.createElement('div');
-                bar.className = 'produceBar';
-                const fill = document.createElement('div');
-                fill.className = 'produceFill';
-                fill.id = `produce-fill-${index}`;
-                bar.appendChild(fill);
-                
-                card.appendChild(icon);
-                card.appendChild(name);
-                card.appendChild(costDiv);
-                card.appendChild(bar);
-                
-                if (isLocked) {
-                    const lockText = document.createElement('div');
-                    lockText.textContent = '🔒';
-                    lockText.style.cssText = 'position:absolute;top:3px;right:3px;font-size:10px;';
-                    card.appendChild(lockText);
-                }
-                
-                container.appendChild(card);
-            });
-        }
-        
-        function getUnitSVG(era, unitIndex) {
-            const shapes = [
-                `<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="15" fill="currentColor" opacity="0.9"/></svg>`,
-                `<svg viewBox="0 0 40 40"><rect x="10" y="10" width="20" height="20" fill="currentColor"/></svg>`,
-                `<svg viewBox="0 0 40 40"><polygon points="20,5 35,35 5,35" fill="currentColor"/></svg>`,
-                `<svg viewBox="0 0 40 40"><ellipse cx="20" cy="20" rx="15" ry="10" fill="currentColor"/></svg>`,
-                `<svg viewBox="0 0 40 40"><path d="M10 20 L30 20 M20 10 L20 30" stroke="currentColor" stroke-width="4"/></svg>`
-            ];
-            return shapes[(era + unitIndex) % shapes.length];
-        }
-        
-        function updateProductionUI() {
-            if (productionState.isProducing && productionState.currentUnit !== null) {
-                const fill = document.getElementById(`produce-fill-${productionState.currentUnit}`);
-                if (fill) fill.style.width = (productionState.progress * 100) + '%';
-            }
-        }
-        
-        // ==================== 單位生產 ====================
-        
-        function produceUnit(unitIndex, cost) {
-            if (gameState.paused || gameState.gameOver) return;
-            if (productionState.isProducing) return;
-            
-            const era = ERAS[gameState.era - 1];
-            if (unitIndex >= era.units.length) return;
-            
-            if (gameState.gold < cost) {
-                const card = document.getElementById(`unit-${unitIndex}`);
-                card.classList.add('no-gold');
-                setTimeout(() => card.classList.remove('no-gold'), 300);
-                return;
-            }
-            
-            gameState.gold -= cost;
-            productionState.isProducing = true;
-            productionState.currentUnit = unitIndex;
-            productionState.progress = 0;
-            
-            const card = document.getElementById(`unit-${unitIndex}`);
-            card.classList.add('producing');
-            
-            const base = document.getElementById('baseIcon');
-            base.style.filter = 'brightness(1.5)';
-            setTimeout(() => base.style.filter = '', 300);
-            
-            updateUI();
-            
-            const produceInterval = setInterval(() => {
-                if (gameState.paused) return;
-                
-                productionState.progress += 0.05 * gameState.gameSpeed;
-                updateProductionUI();
-                
-                if (productionState.progress >= 1) {
-                    clearInterval(produceInterval);
-                    productionState.isProducing = false;
-                    card.classList.remove('producing');
-                    const fill = document.getElementById(`produce-fill-${unitIndex}`);
-                    if (fill) fill.style.width = '0%';
-                    spawnUnit(unitIndex, cost);
-                }
-            }, 50);
-        }
-        
-        // ==================== 我方單位系統 ====================
-        
-        function spawnUnit(unitIndex, cost) {
-            const field = document.getElementById('battleField');
-            const era = ERAS[gameState.era - 1];
-            
-            const baseMultiplier = Math.pow(1.5, gameState.era - 1) * (1 + (gameState.eraLevel - 1) * 0.2);
-            
-            const unit = {
-                id: Date.now() + Math.random(),
-                type: 'friendly',
-                era: gameState.era,
-                unitIndex: unitIndex,
-                x: 45,
-                y: (Math.random() - 0.5) * 50,
-                health: 80 * baseMultiplier,
-                maxHealth: 80 * baseMultiplier,
-                attack: 20 * baseMultiplier,
-                speed: 25 + (unitIndex * 8),
-                attackRange: 60,
-                lastAttack: 0,
-                element: null,
-                cost: cost
-            };
-            
-            gameState.units.push(unit);
-            renderUnit(unit);
-        }
-        
-        function renderUnit(unit) {
-            const field = document.getElementById('battleField');
-            const era = ERAS[unit.era - 1];
-            
-            const el = document.createElement('div');
-            el.className = `unit friendly era-${unit.era}`;
-            el.id = `unit-${unit.id}`;
-            el.style.left = unit.x + 'px';
-            el.style.top = (field.offsetHeight / 2 + unit.y - 10) + 'px';
-            el.style.width = '20px';
-            el.style.height = '20px';
-            
-            el.innerHTML = `<div class="unit-shape" style="color: ${era.color}">${getUnitSVG(unit.era, unit.unitIndex)}</div>`;
-            
-            field.appendChild(el);
-            unit.element = el;
-        }
-        
-        function updateUnits(dt) {
-            const field = document.getElementById('battleField');
-            const fieldWidth = field.offsetWidth;
-            const enemyBaseX = fieldWidth - 45;
-            
-            gameState.units = gameState.units.filter(unit => {
-                if (!unit.element) return false;
-                
-                let target = null;
-                let minDist = unit.attackRange;
-                
-                for (let enemy of gameState.enemyUnits) {
-                    if (!enemy.element || enemy.health <= 0) continue;
-                    const dist = Math.abs(enemy.x - unit.x);
-                    if (dist < minDist) {
-                        minDist = dist;
-                        target = enemy;
-                    }
-                }
-                
-                const distToEnemyBase = enemyBaseX - (unit.x + 20);
-                
-                if (distToEnemyBase <= 0) {
-                    const now = Date.now();
-                    if (now - unit.lastAttack > 800 / gameState.gameSpeed) {
-                        unit.lastAttack = now;
-                        attackEnemyBase(unit);
-                    }
-                } else if (target) {
-                    const now = Date.now();
-                    if (now - unit.lastAttack > (1000 - unit.era * 30) / gameState.gameSpeed) {
-                        unit.lastAttack = now;
-                        performAttack(unit, target, 'friendly');
-                    }
-                } else {
-                    unit.x += unit.speed * dt * gameState.gameSpeed;
-                    unit.element.style.left = unit.x + 'px';
-                }
-                
-                if (unit.health <= 0) {
-                    unit.element.remove();
-                    return false;
-                }
-                
-                return true;
-            });
-        }
-        
-        function attackEnemyBase(unit) {
-            const enemyBaseIcon = document.getElementById('enemyBaseIcon');
-            enemyBaseIcon.style.filter = 'brightness(1.5)';
-            setTimeout(() => enemyBaseIcon.style.filter = '', 100);
-            
-            gameState.enemyHealth -= unit.attack;
-            
-            if (gameState.enemyHealth <= 0) {
-                victory();
-            }
-            
+        updateUI();
+    }
+
+    function playerEvolve() {
+        let cost = CONFIG.baseEvolveCost * Math.pow(CONFIG.evolveMultiplier, state.pEra);
+        if (state.gold >= cost && state.pEra < ERAS.length - 1) {
+            state.gold -= cost;
+            state.pEra++;
             updateUI();
         }
+    }
+
+    function enemyAI() {
+        if(!state.isRunning) return;
         
-        // ==================== 敵方單位系統 ====================
-        
-        function spawnEnemyUnit(unitIndex) {
-            if (gameState.gameOver) return;
-            
-            const field = document.getElementById('battleField');
-            const waveMultiplier = Math.pow(1.1, gameState.wave) * Math.pow(1.3, gameState.enemyEra - 1);
-            
-            const enemyUnit = {
-                id: Date.now() + Math.random(),
-                type: 'enemy',
-                unitIndex: unitIndex || 0,
-                x: field.offsetWidth - 45,
-                y: (Math.random() - 0.5) * 50,
-                health: 90 * waveMultiplier,
-                maxHealth: 90 * waveMultiplier,
-                attack: 12 * waveMultiplier,
-                speed: 20 + Math.min(gameState.wave * 2, 40),
-                attackRange: 60,
-                lastAttack: 0,
-                element: null
-            };
-            
-            gameState.enemyUnits.push(enemyUnit);
-            renderEnemyUnit(enemyUnit);
+        // 自動晉升邏輯
+        let nextCost = CONFIG.baseEvolveCost * Math.pow(CONFIG.evolveMultiplier, state.eEra);
+        if (state.eGold >= nextCost && state.eEra < ERAS.length - 1) {
+            state.eGold -= nextCost;
+            state.eEra++;
         }
-        
-        function renderEnemyUnit(enemy) {
-            const field = document.getElementById('battleField');
-            
-            const el = document.createElement('div');
-            el.className = 'unit enemy';
-            el.id = `enemy-${enemy.id}`;
-            el.style.left = enemy.x + 'px';
-            el.style.top = (field.offsetHeight / 2 + enemy.y - 10) + 'px';
-            el.style.width = '22px';
-            el.style.height = '22px';
-            el.style.background = '#e94560';
-            el.style.clipPath = 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)';
-            
-            field.appendChild(el);
-            enemy.element = el;
+
+        // 自動生成單位 (無冷卻，只要有錢就生)
+        const era = ERAS[state.eEra];
+        if (state.eGold >= era.units[0].cost) {
+            spawnUnit(false, 0);
         }
+    }
+
+    function gameLoop() {
+        if(!state.isRunning) return;
+
+        const moveSpeed = 2;
         
-        function updateEnemyUnits(dt) {
-            const myBaseX = 45;
-            
-            gameState.enemyUnits = gameState.enemyUnits.filter(enemy => {
-                if (!enemy.element) return false;
-                
-                let target = null;
-                let minDist = enemy.attackRange;
-                
-                for (let unit of gameState.units) {
-                    if (!unit.element || unit.health <= 0) continue;
-                    const dist = Math.abs(unit.x - enemy.x);
-                    if (dist < minDist) {
-                        minDist = dist;
-                        target = unit;
-                    }
-                }
-                
-                const distToMyBase = enemy.x - myBaseX;
-                
-                if (distToMyBase <= 0) {
-                    const now = Date.now();
-                    if (now - enemy.lastAttack > 800 / gameState.gameSpeed) {
-                        enemy.lastAttack = now;
-                        attackMyBase(enemy);
-                    }
-                } else if (target) {
-                    const now = Date.now();
-                    if (now - enemy.lastAttack > 900 / gameState.gameSpeed) {
-                        enemy.lastAttack = now;
-                        performAttack(enemy, target, 'enemy');
-                    }
-                } else {
-                    enemy.x -= enemy.speed * dt * gameState.gameSpeed;
-                    enemy.element.style.left = enemy.x + 'px';
-                }
-                
-                if (enemy.health <= 0) {
-                    gameState.xp += 12 * gameState.wave;
-                    enemy.element.remove();
-                    return false;
-                }
-                
-                return true;
-            });
-        }
-        
-        function attackMyBase(enemy) {
-            const baseIcon = document.getElementById('baseIcon');
-            baseIcon.style.filter = 'brightness(1.5)';
-            setTimeout(() => baseIcon.style.filter = '', 100);
-            
-            gameState.baseHealth -= enemy.attack;
-            
-            if (gameState.baseHealth <= 0) {
-                gameOver();
+        // 我方前進
+        state.pUnits.forEach((u, index) => {
+            let blocked = false;
+            // 檢查敵方單位或基地
+            if (u.pos >= window.innerWidth - 120) {
+                blocked = true;
+                state.eHealth -= u.dmg / 60;
             }
+            state.eUnits.forEach(e => { if(Math.abs(u.pos - e.pos) < 30) blocked = true; });
             
-            updateUI();
-        }
-        
-        // ==================== 攻擊系統 ====================
-        
-        function performAttack(attacker, target, type) {
-            const field = document.getElementById('battleField');
-            
-            const projectile = document.createElement('div');
-            projectile.className = 'attack';
-            
-            const startX = attacker.x + 10;
-            const startY = parseFloat(attacker.element.style.top) + 10;
-            const targetX = target.x + 10;
-            const targetY = parseFloat(target.element.style.top) + 10;
-            
-            const angle = Math.atan2(targetY - startY, targetX - startX);
-            const distance = Math.sqrt(Math.pow(targetX - startX, 2) + Math.pow(targetY - startY, 2));
-            
-            const color = type === 'friendly' ? ERAS[attacker.era - 1].color : '#e94560';
-            
-            projectile.style.cssText = `
-                position: absolute;
-                left: ${startX}px;
-                top: ${startY}px;
-                width: ${distance}px;
-                height: 2px;
-                background: ${color};
-                transform-origin: left center;
-                transform: rotate(${angle}rad);
-                opacity: 0.7;
-            `;
-            
-            field.appendChild(projectile);
-            
-            setTimeout(() => {
-                projectile.remove();
-                target.health -= attacker.attack;
-                
-                if (target.element) {
-                    target.element.style.filter = 'brightness(2)';
-                    setTimeout(() => {
-                        if (target.element) target.element.style.filter = type === 'friendly' ? `drop-shadow(0 0 2px ${type === 'friendly' ? ERAS[target.era - 1].color : '#e94560'})` : 'drop-shadow(0 0 2px #e94560)';
-                    }, 100);
-                }
-            }, 30 / gameState.gameSpeed);
-        }
-        
-        // ==================== 進化系統 ====================
-        
-        function showEvolveModal() {
-            if (gameState.xp < gameState.xpNeeded || gameState.era >= 20) return;
-            
-            const modal = document.getElementById('evolveModal');
-            const era = ERAS[gameState.era - 1];
-            const nextEra = ERAS[gameState.era] || ERAS[19];
-            
-            document.getElementById('currentEraName').textContent = era.name;
-            document.getElementById('currentEraName').style.color = era.color;
-            document.getElementById('currentXP').textContent = Math.floor(gameState.xp);
-            document.getElementById('neededXP').textContent = gameState.xpNeeded;
-            document.getElementById('nextEraName').textContent = `時代 ${Math.min(gameState.era + 1, 20)}：${nextEra.name}`;
-            document.getElementById('currentLevel').textContent = gameState.eraLevel;
-            document.getElementById('nextLevel').textContent = gameState.eraLevel + 1;
-            
-            modal.classList.add('active');
-            gameState.paused = true;
-        }
-        
-        function closeEvolveModal() {
-            document.getElementById('evolveModal').classList.remove('active');
-            gameState.paused = false;
-        }
-        
-        function evolveNext() {
-            if (gameState.era < 20) {
-                gameState.era++;
-                gameState.xp -= gameState.xpNeeded;
-                gameState.xpNeeded = Math.floor(gameState.xpNeeded * 1.5);
-                gameState.eraLevel = 1;
-                
-                gameState.wave = Math.floor(gameState.wave * 1.2);
-                gameState.enemyMaxHealth = Math.floor(gameState.enemyMaxHealth * 1.3);
-                gameState.enemyHealth = gameState.enemyMaxHealth;
-                
-                updateBaseAppearance();
+            if(!blocked) u.pos += moveSpeed;
+            u.el.style.left = u.pos + 'px';
+        });
+
+        // 敵方前進
+        state.eUnits.forEach((u, index) => {
+            let blocked = false;
+            if (u.pos <= 120) {
+                blocked = true;
+                state.pHealth -= u.dmg / 60;
             }
+            state.pUnits.forEach(p => { if(Math.abs(u.pos - p.pos) < 30) blocked = true; });
             
-            renderUnitCards();
-            updateUI();
-            closeEvolveModal();
+            if(!blocked) u.pos -= moveSpeed;
+            u.el.style.left = u.pos + 'px';
+        });
+
+        checkDeath();
+        updateHealthBars();
+        requestAnimationFrame(gameLoop);
+    }
+
+    function checkDeath() {
+        if (state.pHealth <= 0 || state.eHealth <= 0) {
+            state.isRunning = false;
+            alert(state.pHealth <= 0 ? "你戰敗了！" : "你勝利了！");
+            location.reload();
         }
+    }
+
+    function updateUI() {
+        document.getElementById('goldDisplay').innerText = Math.floor(state.gold);
+        document.getElementById('eraName').innerText = `時代 ${state.pEra + 1}：${ERAS[state.pEra].name}`;
+        document.getElementById('pEraTag').innerText = ERAS[state.pEra].name;
+        document.getElementById('eEraTag').innerText = ERAS[state.eEra].name;
         
-        function enhanceCurrent() {
-            gameState.eraLevel++;
-            gameState.xp -= gameState.xpNeeded;
-            gameState.xpNeeded = Math.floor(gameState.xpNeeded * 1.3);
-            updateUI();
-            closeEvolveModal();
-        }
-        
-        // ==================== 遊戲控制 ====================
-        
-        function togglePause() {
-            if (gameState.gameOver) return;
-            gameState.paused = !gameState.paused;
-            document.getElementById('pauseBtn').textContent = gameState.paused ? '▶️' : '⏸️';
-        }
-        
-        function gameOver() {
-            gameState.gameOver = true;
-            gameState.paused = true;
-            
-            document.getElementById('resultTitle').textContent = '失敗';
-            document.getElementById('resultTitle').style.color = '#e94560';
-            document.getElementById('finalWave').textContent = gameState.wave;
-            document.getElementById('finalEra').textContent = gameState.era;
-            document.getElementById('finalEraName').textContent = ERAS[gameState.era - 1].name;
-            
-            document.getElementById('gameOverScreen').classList.add('active');
-        }
-        
-        function victory() {
-            gameState.gameOver = true;
-            gameState.paused = true;
-            
-            document.getElementById('resultTitle').textContent = '勝利';
-            document.getElementById('resultTitle').style.color = '#6bcf7f';
-            document.getElementById('finalWave').textContent = gameState.wave;
-            document.getElementById('finalEra').textContent = gameState.era;
-            document.getElementById('finalEraName').textContent = ERAS[gameState.era - 1].name;
-            
-            document.getElementById('gameOverScreen').classList.add('active');
-        }
-        
-        // ==================== 遊戲循環 ====================
-        
-        function gameLoop(timestamp) {
-            if (!gameState.lastTime) gameState.lastTime = timestamp;
-            const dt = Math.min((timestamp - gameState.lastTime) / 1000, 0.1);
-            gameState.lastTime = timestamp;
-            
-            if (!gameState.paused && !gameState.gameOver) {
-                updateUnits(dt);
-                updateEnemyUnits(dt);
-                updateUI();
-            }
-            
-            requestAnimationFrame(gameLoop);
-        }
-        
-        setTimeout(init, 100);
-    </script>
+        let evolveCost = CONFIG.baseEvolveCost * Math.pow(CONFIG.evolveMultiplier, state.pEra);
+        document.getElementById('evolveBtn').innerText = `晉升時代 (${evolveCost})`;
+
+        // 更新單位卡片
+        const row = document.getElementById('unitRow');
+        row.innerHTML = '';
+        ERAS[state.pEra].units.forEach((u, i) => {
+            const card = document.createElement('div');
+            card.className = 'unitCard';
+            card.onclick = () => spawnUnit(true, i);
+            card.innerHTML = `<span class="unitIcon">${u.icon}</span><span class="unitCost">${u.cost}</span>`;
+            row.appendChild(card);
+        });
+    }
+
+    function updateHealthBars() {
+        document.getElementById('pHealthFill').style.width = (state.pHealth / CONFIG.baseMaxHealth * 100) + '%';
+        document.getElementById('eHealthFill').style.width = (state.eHealth / CONFIG.baseMaxHealth * 100) + '%';
+    }
+
+</script>
 </body>
 </html>
