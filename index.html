@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>進化紀元：豪華選單版</title>
+    <title>進化紀元：神級資源修正版</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-touch-callout: none; user-select: none; touch-action: none; }
         
-        /* 核心修正：背景絕不全黑 */
+        /* 確保背景永遠存在，不出現全黑 */
         body, html { 
             background: #3d2b1f url('https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1200') no-repeat center center;
             background-size: cover;
@@ -15,60 +15,57 @@
             font-family: 'PingFang TC', sans-serif; 
         }
 
-        #mainStage { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; display: flex; flex-direction: column; z-index: 100; }
-
-        /* 背景層 */
         #gameBg { 
             position: absolute; width: 100%; height: 100%; 
             background-size: cover; background-position: center; 
-            z-index: 1; transition: opacity 0.8s;
+            z-index: 1; transition: opacity 0.5s;
         }
 
-        #gameContainer { position: relative; flex: 1; display: none; flex-direction: column; z-index: 10; }
+        #mainStage { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; display: flex; flex-direction: column; z-index: 100; }
 
-        /* 頂部選單欄 */
         #topBar { 
             padding: env(safe-area-inset-top) 15px 10px 15px; 
-            background: rgba(0,0,0,0.6); 
+            background: rgba(0,0,0,0.7); 
             display: flex; justify-content: space-between; align-items: center;
-            z-index: 500; 
+            z-index: 2000; 
         }
 
-        .infoText { color: #ffd700; font-weight: bold; font-size: 14px; text-shadow: 1px 1px 2px #000; }
+        .infoText { color: #ffd700; font-weight: bold; font-size: 16px; text-shadow: 1px 1px 2px #000; }
 
-        /* 速度切換按鈕 */
-        .speedBtn {
+        .btn {
             background: #4a90e2; color: #fff; border: 2px solid #fff;
-            padding: 4px 10px; border-radius: 15px; font-size: 12px; font-weight: bold;
+            padding: 6px 12px; border-radius: 15px; font-size: 13px; font-weight: bold;
         }
 
-        #viewport { flex: 1; position: relative; overflow: hidden; z-index: 20; }
+        #viewport { flex: 1; position: relative; overflow: hidden; z-index: 100; }
         
-        .base { position: absolute; bottom: 22%; width: 140px; display: flex; flex-direction: column; align-items: center; z-index: 30; }
+        /* 基地樣式 */
+        .base { position: absolute; bottom: 22%; width: 140px; display: flex; flex-direction: column; align-items: center; z-index: 50; }
         #playerBase { left: 10px; }
         #enemyBase { right: 10px; }
 
-        .unit { position: absolute; bottom: 22%; width: 60px; display: flex; flex-direction: column; align-items: center; z-index: 100; }
+        /* 物種樣式 */
+        .unit { position: absolute; bottom: 22%; width: 60px; display: flex; flex-direction: column; align-items: center; z-index: 150; pointer-events: none; }
         .hpBar { width: 40px; height: 6px; background: #000; border: 1px solid #fff; border-radius: 3px; overflow: hidden; margin-bottom: 5px; }
-        .hpFill { height: 100%; width: 100%; transition: width 0.1s; }
+        .hpFill { height: 100%; width: 100%; }
 
         #bottomBar { 
-            background: rgba(45, 30, 20, 0.9); height: 110px; 
+            background: rgba(30, 20, 10, 0.95); height: 120px; 
             padding-bottom: env(safe-area-inset-bottom);
             display: flex; justify-content: center; align-items: center;
-            border-top: 3px solid #8b4513; z-index: 500;
+            border-top: 4px solid #8b4513; z-index: 2000;
         }
         
-        #unitRow { display: flex; gap: 12px; }
+        #unitRow { display: flex; gap: 15px; }
         .unitCard { 
-            width: 75px; height: 85px; background: #d2b48c; border: 2px solid #8b4513; 
+            width: 80px; height: 90px; background: #d2b48c; border: 3px solid #8b4513; 
             border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center;
             box-shadow: 0 4px 0 #5d4037;
         }
 
         #startMenu {
-            position: absolute; width: 100%; height: 100%; z-index: 1000;
-            background: rgba(0,0,0,0.4) backdrop-filter: blur(5px);
+            position: absolute; width: 100%; height: 100%; z-index: 5000;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
             display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
     </style>
@@ -80,15 +77,15 @@
 <div id="mainStage">
     <div id="startMenu">
         <h1 style="font-size: 48px; color: #fff; text-shadow: 3px 3px #8b4513; margin-bottom: 40px;">進化紀元</h1>
-        <button style="padding: 15px 60px; font-size: 24px; background: #2ecc71; color: #fff; border: 4px solid #fff; border-radius: 20px; font-weight: bold; box-shadow: 0 10px 0 #27ae60;" onclick="initGame()">開始戰鬥</button>
+        <button class="btn" style="padding: 15px 50px; font-size: 24px; background: #2ecc71; border-radius: 20px;" onclick="initGame()">開始戰鬥</button>
     </div>
 
-    <div id="gameContainer">
+    <div id="gameContainer" style="display: none; flex: 1; flex-direction: column;">
         <div id="topBar">
-            <div class="infoText">🪙 <span id="goldDisp">500</span></div>
-            <div style="display: flex; gap: 8px;">
-                <button class="speedBtn" id="speedBtn" onclick="toggleSpeed()">速度: 1x</button>
-                <button onclick="playerEvolve()" style="background:#e67e22; border:2px solid #fff; padding:4px 12px; border-radius:15px; color:#fff; font-size:12px; font-weight:bold;">進化時代</button>
+            <div class="infoText">🪙 <span id="goldDisp">500</span> <span style="font-size:10px; color:#00ff00;">(+500/s)</span></div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn" id="speedBtn" onclick="toggleSpeed()">速度: 1x</button>
+                <button class="btn" style="background:#e67e22;" onclick="playerEvolve()">進化時代</button>
             </div>
         </div>
 
@@ -110,17 +107,25 @@
 </div>
 
 <script>
-    const CONFIG = { baseHp: 50000, evolveBase: 5000, killReward: 0.8, pIncome: 20, eIncome: 200, collisionRange: 65, baseStopRange: 130 };
+    const CONFIG = { 
+        baseHp: 50000, 
+        evolveBase: 5000, 
+        killReward: 0.8, 
+        pIncome: 500, // 我方每秒 500 🪙
+        eIncome: 200, 
+        collisionRange: 60, 
+        baseStopRange: 145 // 增加緩衝距離，防止重疊
+    };
+    
     const ERAS = [
-        { name: "石器", bg: "url('https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1200')", base: "🛖", units: [{cost:50, icon:"🦴", hp:350, dmg:90}, {cost:250, icon:"🪨", hp:800, dmg:160}] },
-        { name: "青銅", bg: "url('https://images.unsplash.com/photo-1599733589046-10c005739ef0?w=1200')", base: "🏺", units: [{cost:1000, icon:"🔱", hp:2800, dmg:550}, {cost:3000, icon:"🐎", hp:6500, dmg:1100}] }
+        { name: "石器", bg: "url('https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1200')", base: "🛖", units: [{cost:50, icon:"🦴", hp:400, dmg:100}, {cost:250, icon:"🪨", hp:900, dmg:180}] },
+        { name: "青銅", bg: "url('https://images.unsplash.com/photo-1599733589046-10c005739ef0?w=1200')", base: "🏺", units: [{cost:1000, icon:"🔱", hp:3000, dmg:600}, {cost:3000, icon:"🐎", hp:7000, dmg:1200}] }
     ];
 
     let state = { gold: 500, eGold: 1000, pHp: 50000, eHp: 50000, pEra: 0, eEra: 0, pUnits: [], eUnits: [], isRunning: false, gameSpeed: 1 };
     let loops = {};
 
     function initGame() {
-        state.gold = 500; state.eGold = 1000; state.pHp = CONFIG.baseHp; state.eHp = CONFIG.baseHp;
         document.getElementById('startMenu').style.display = 'none';
         document.getElementById('gameContainer').style.display = 'flex';
         state.isRunning = true;
@@ -129,19 +134,13 @@
         updateUI();
     }
 
-    // 速度切換功能
     function toggleSpeed() {
-        if (state.gameSpeed === 1) state.gameSpeed = 2;
-        else if (state.gameSpeed === 2) state.gameSpeed = 4;
-        else state.gameSpeed = 1;
+        state.gameSpeed = state.gameSpeed === 1 ? 2 : (state.gameSpeed === 2 ? 4 : 1);
         document.getElementById('speedBtn').innerText = `速度: ${state.gameSpeed}x`;
     }
 
     function startLoops() {
-        if(loops.game) clearInterval(loops.game);
-        if(loops.income) clearInterval(loops.income);
-        if(loops.ai) clearInterval(loops.ai);
-
+        clearInterval(loops.game); clearInterval(loops.income); clearInterval(loops.ai);
         loops.game = setInterval(update, 1000 / 60);
         loops.income = setInterval(() => { 
             if(!state.isRunning) return; 
@@ -156,8 +155,6 @@
         if(!state.isRunning) return;
         const era = ERAS[state.eEra];
         const nextCost = Math.floor(CONFIG.evolveBase * Math.pow(3, state.eEra));
-        
-        // 依照你的要求：0.8倍成本時發動總攻擊
         if (state.eGold >= (nextCost * 0.8)) {
             if (state.eGold >= era.units[1].cost) spawn(false, 1);
         } else {
@@ -169,24 +166,27 @@
     function update() {
         if (!state.isRunning) return;
         const screenW = window.innerWidth;
-        const speedMult = state.gameSpeed;
+        const speed = state.gameSpeed;
 
         [state.pUnits, state.eUnits].forEach((units, i) => {
             const isP = i === 0;
             const enemies = isP ? state.eUnits : state.pUnits;
-            const stopX = isP ? screenW - CONFIG.baseStopRange : CONFIG.baseStopRange;
+            const stopLine = isP ? screenW - CONFIG.baseStopRange : CONFIG.baseStopRange;
 
             units.forEach(u => {
                 let target = enemies.find(e => Math.abs(u.pos - e.pos) < CONFIG.collisionRange);
+                
                 if (target) {
-                    target.hp -= (u.dmg / 60 * speedMult);
-                    u.el.style.transform = `scale(1.1) translateX(${isP?8:-8}px)`;
-                } else if ((isP && u.pos >= stopX) || (!isP && u.pos <= stopX)) {
-                    if(isP) state.eHp -= (u.dmg / 60 * speedMult); else state.pHp -= (u.dmg / 60 * speedMult);
-                    u.el.style.transform = `scale(1.1) translateX(${isP?8:-8}px)`;
+                    target.hp -= (u.dmg / 60 * speed);
+                    u.el.style.transform = `translateX(${isP?8:-8}px) scale(1.1)`;
+                } else if ((isP && u.pos >= stopLine) || (!isP && u.pos <= stopLine)) {
+                    // 強制鎖死位置，不准越過停止線
+                    u.pos = stopLine;
+                    if(isP) state.eHp -= (u.dmg / 60 * speed); else state.pHp -= (u.dmg / 60 * speed);
+                    u.el.style.transform = `translateX(${isP?8:-8}px) scale(1.1)`;
                 } else {
-                    u.pos += (isP ? 2.5 : -2.5) * speedMult;
-                    u.el.style.transform = `scale(1) translateX(0px)`;
+                    u.pos += (isP ? 2.5 : -2.5) * speed;
+                    u.el.style.transform = `translateX(0px) scale(1)`;
                 }
                 u.el.style.left = u.pos + 'px';
                 if(u.hpEl) u.hpEl.style.width = Math.max(0, (u.hp / u.maxHp * 100)) + '%';
@@ -196,12 +196,12 @@
         state.eUnits = state.eUnits.filter(u => { if (u.hp <= 0) { state.gold += (u.cost * CONFIG.killReward); u.el.remove(); return false; } return true; });
         state.pUnits = state.pUnits.filter(u => { if (u.hp <= 0) { u.el.remove(); return false; } return true; });
         
-        document.getElementById('pHpFill').style.width = Math.max(0, (state.pHp / CONFIG.baseHp * 100)) + '%';
-        document.getElementById('eHpFill').style.width = Math.max(0, (state.eHp / CONFIG.baseHp * 100)) + '%';
+        document.getElementById('pHpFill').style.width = (state.pHp / CONFIG.baseHp * 100) + '%';
+        document.getElementById('eHpFill').style.width = (state.eHp / CONFIG.baseHp * 100) + '%';
 
         if (state.pHp <= 0 || state.eHp <= 0) {
             state.isRunning = false;
-            alert(state.pHp <= 0 ? "戰敗了！再接再厲！" : "勝利！時代由你開啟！");
+            alert(state.pHp <= 0 ? "遺憾，基地淪陷了！" : "偉大的勝利！時代屬於你！");
             location.reload();
         }
     }
@@ -217,7 +217,9 @@
         el.innerHTML = `<div class="hpBar"><div class="hpFill" style="background:${isP?'#2ecc71':'#e74c3c'}"></div></div><div style="font-size:50px;">${data.icon}</div>`;
         document.getElementById('battlefield').appendChild(el);
 
-        const unit = { el, hpEl: el.querySelector('.hpFill'), pos: isP ? 130 : window.innerWidth - 130, hp: data.hp, maxHp: data.hp, dmg: data.dmg, cost: data.cost };
+        // 產出位置避開基地
+        const startPos = isP ? 135 : window.innerWidth - 135;
+        const unit = { el, hpEl: el.querySelector('.hpFill'), pos: startPos, hp: data.hp, maxHp: data.hp, dmg: data.dmg, cost: data.cost };
         if (isP) state.pUnits.push(unit); else state.eUnits.push(unit);
         updateUI();
     }
@@ -232,6 +234,7 @@
     function updateBackground() {
         const bgUrl = ERAS[Math.max(state.pEra, state.eEra)].bg;
         document.getElementById('gameBg').style.backgroundImage = bgUrl;
+        document.getElementById('gameBg').style.opacity = 1;
     }
 
     function updateUI() {
@@ -241,7 +244,7 @@
         const row = document.getElementById('unitRow'); row.innerHTML = '';
         ERAS[state.pEra].units.forEach((u, i) => {
             const card = document.createElement('div'); card.className = 'unitCard'; card.onclick = () => spawn(true, i);
-            card.innerHTML = `<span style="font-size:32px">${u.icon}</span><span style="font-size:12px;color:#5d4037;font-weight:bold;">${u.cost}</span>`;
+            card.innerHTML = `<span style="font-size:32px">${u.icon}</span><span style="font-size:12px;color:#5d4037;font-weight:bold;margin-top:5px;">${u.cost}</span>`;
             row.appendChild(card);
         });
     }
