@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>進化紀元 - Age of Evolution</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        body {
+            background: #1a1a2e;
+            color: #fff;
+            font-family: 'Microsoft JhengHei', sans-serif;
+            overflow: hidden;
+            touch-action: none;
+        }
+        
+        /* 強制橫向提示 */
+        #orientationLock {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #1a1a2e;
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        #orientationLock.active {
+            display: flex;
+        }
+        
+        .rotateIcon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: rotatePhone 2s infinite;
+        }
+        
+        @keyframes rotatePhone {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(90deg); }
+        }
+        
+        .orientationText {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .orientationSub {
+            font-size: 16px;
+            color: #888;
+        }
+        
+        /* 遊戲容器 */
+        #gameContainer {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* 頂部狀態列 */
+        #topBar {
+            height: 45px;
+            background: #16213e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 15px;
+            gap: 20px;
+            border-bottom: 2px solid #0f3460;
+            flex-shrink: 0;
+        }
+        
+        #eraInfo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        #eraName {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        #evolveBtn {
+            padding: 5px 10px;
+            background: #0f3460;
+            border: 2px solid #e94560;
+            color: #fff;
+            border-radius: 12px;
+            cursor: pointer;
+            opacity: 0.5;
+            transition: all 0.3s;
+            font-size: 11px;
+        }
+        
+        #evolveBtn.ready {
+            opacity: 1;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 5px #e94560; }
+            50% { box-shadow: 0 0 15px #e94560; }
+        }
+        
+        #xpBar {
+            width: 100px;
+            height: 6px;
+            background: #333;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .xpFill {
+            height: 100%;
+            background: #ffd700;
+            transition: width 0.3s;
+        }
+        
+        /* 戰場區域 */
+        #battleField {
+            flex: 1;
+            position: relative;
+            background: #0f1419;
+            overflow: hidden;
+            min-height: 0;
+        }
+        
+        /* 基地樣式 */
+        .base {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 10;
+        }
+        
+        #base {
+            left: 0;
+        }
+        
+        #enemyBase {
+            right: 0;
+        }
+        
+        .baseIcon {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            transition: all 0.3s;
+        }
+        
+        .baseHealthBar {
+            width: 60px;
+            height: 6px;
+            background: #333;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 4px;
+        }
+        
+        .baseHealthFill {
+            height: 100%;
+            transition: width 0.3s;
+        }
+        
+        .baseHealthFill.friendly {
+            background: linear-gradient(90deg, #6bcf7f, #4a9c5d);
+        }
+        
+        .baseHealthFill.enemy {
+            background: linear-gradient(90deg, #e94560, #c73e54);
+        }
+        
+        /* 時代風格 - 我方基地 */
+        .era-base-1 { background: radial-gradient(circle, #fff 0%, #888 100%); clip-path: circle(50%); }
+        .era-base-2 { background: linear-gradient(135deg, #a8d8ea 0%, #5d8aa8 100%); clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
+        .era-base-3 { background: conic-gradient(from 0deg, #ff6b6b, #ffaa00, #ff6b6b); clip-path: circle(50%); }
+        .era-base-4 { background: radial-gradient(circle, #ffd93d 0%, #ff8c00 100%); clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+        .era-base-5 { background: radial-gradient(circle at 30% 30%, #6bcf7f, #2d8a4e); border-radius: 50%; box-shadow: 0 0 10px #6bcf7f; }
+        .era-base-6 { background: linear-gradient(45deg, #a8e6cf, #7fcdcd); clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%); }
+        .era-base-7 { background: radial-gradient(circle, #7fcdcd 0%, #4a9c9c 100%); clip-path: ellipse(50% 40% at 50% 50%); }
+        .era-base-8 { background: linear-gradient(180deg, #5d8aa8 0%, #2d4a5a 100%); border-radius: 40% 40% 50% 50%; }
+        .era-base-9 { background: radial-gradient(circle, #b8e6b8 0%, #6bcf7f 100%); border-radius: 50%; border: 3px solid #4a9c5d; }
+        .era-base-10 { background: linear-gradient(45deg, #98d8c8, #7fcdcd); clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%); }
+        .era-base-11 { background: radial-gradient(circle, #ffd700 0%, #daa520 100%); border-radius: 50%; box-shadow: 0 0 15px #ffd700; }
+        .era-base-12 { background: linear-gradient(90deg, #ff8c00, #ff6b00); clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
+        .era-base-13 { background: radial-gradient(circle, #daa520 0%, #b8860b 100%); border-radius: 50%; border: 2px dashed #ffd700; }
+        .era-base-14 { background: linear-gradient(45deg, #cd853f, #8b4513); clip-path: polygon(20% 0%, 80% 0%, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0% 80%, 0% 20%); }
+        .era-base-15 { background: radial-gradient(circle, #8fbc8f 0%, #556b2f 100%); border-radius: 30%; }
+        .era-base-16 { background: linear-gradient(135deg, #b8860b, #8b6914); clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); border: 2px solid #daa520; }
+        .era-base-17 { background: radial-gradient(circle, #f0f0f0 0%, #a0a0a0 100%); border-radius: 50%; box-shadow: inset 0 0 10px #666; }
+        .era-base-18 { background: linear-gradient(180deg, #4169e1 0%, #0000cd 100%); clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); box-shadow: 0 0 15px #4169e1; }
+        .era-base-19 { background: conic-gradient(from 0deg, #00ced1, #20b2aa, #00ced1); clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
+        .era-base-20 { background: radial-gradient(circle, #7fffd4 0%, #00fa9a 50%, #008b8b 100%); border-radius: 50%; box-shadow: 0 0 20px #7fffd4, inset 0 0 10px #fff; }
+        
+        /* 時代風格 - 敵方基地 */
+        .enemy-base-1 { background: radial-gradient(circle, #ff6b6b 0%, #8b0000 100%); clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
+        .enemy-base-2 { background: linear-gradient(135deg, #ff8c00, #8b4513); clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+        .enemy-base-3 { background: radial-gradient(circle, #ffd700 0%, #b8860b 100%); clip-path: circle(50%); border: 2px solid #8b4513; }
+        .enemy-base-4 { background: linear-gradient(45deg, #ff6b6b, #dc143c); clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%); }
+        .enemy-base-5 { background: radial-gradient(circle, #ff1493 0%, #8b008b 100%); border-radius: 50%; box-shadow: 0 0 10px #ff1493; }
+        .enemy-base-6 { background: conic-gradient(from 0deg, #ff6b6b, #ff8c00, #ffd700, #ff6b6b); clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%); }
+        .enemy-base-7 { background: linear-gradient(180deg, #dc143c 0%, #8b0000 100%); border-radius: 40% 40% 50% 50%; }
+        .enemy-base-8 { background: radial-gradient(circle, #ff4500 0%, #8b0000 100%); clip-path: ellipse(50% 40% at 50% 50%); }
+        .enemy-base-9 { background: linear-gradient(45deg, #ff6347, #ff0000); border-radius: 50%; border: 3px solid #8b0000; }
+        .enemy-base-10 { background: radial-gradient(circle, #ff69b4 0%, #c71585 100%); clip-path: polygon(20% 0%, 80% 0%, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0% 80%, 0% 20%); }
+        .enemy-base-11 { background: linear-gradient(90deg, #ff1493, #ff69b4); border-radius: 50%; box-shadow: 0 0 15px #ff1493; }
+        .enemy-base-12 { background: conic-gradient(from 0deg, #ff0000, #ff6b6b, #ff0000); clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
+        .enemy-base-13 { background: radial-gradient(circle, #dc143c 0%, #8b0000 100%); border-radius: 50%; border: 2px dashed #ff6b6b; }
+        .enemy-base-14 { background: linear-gradient(135deg, #b22222, #800000); clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+        .enemy-base-15 { background: radial-gradient(circle, #cd5c5c 0%, #8b0000 100%); border-radius: 30%; }
+        .enemy-base-16 { background: linear-gradient(45deg, #ff4500, #dc143c); clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%); border: 2px solid #ff6b6b; }
+        .enemy-base-17 { background: radial-gradient(circle, #ff6347 0%, #8b0000 100%); border-radius: 50%; box-shadow: inset 0 0 10px #8b0000; }
+        .enemy-base-18 { background: linear-gradient(180deg, #ff1493 0%, #8b008b 100%); clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); box-shadow: 0 0 15px #ff1493; }
+        .enemy-base-19 { background: conic-gradient(from 0deg, #ff69b4, #ff1493, #ff69b4); clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
+        .enemy-base-20 { background: radial-gradient(circle, #ff0000 0%, #8b0000 50%, #4a0000 100%); border-radius: 50%; box-shadow: 0 0 20px #ff0000, inset 0 0 10px #000; }
+        
+        /* 單位樣式 - 無血條 */
+        .unit {
+            position: absolute;
+            transition: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5;
+        }
+        
+        .unit.friendly {
+            filter: drop-shadow(0 0 2px currentColor);
+        }
+        
+        .unit.enemy {
+            filter: drop-shadow(0 0 2px #e94560);
+        }
+        
+        .unit-shape {
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* 攻擊效果 */
+        .attack {
+            position: absolute;
+            pointer-events: none;
+            z-index: 6;
+        }
+        
+        /* 底部控制區 */
+        #bottomBar {
+            height: 130px;
+            background: #16213e;
+            border-top: 2px solid #0f3460;
+            display: flex;
+            flex-direction: column;
+            padding: 8px;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        
+        /* 單位生產列 */
+        #unitRow {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+            overflow-x: auto;
+        }
+        
+        .unitCard {
+            width: 65px;
+            height: 80px;
+            background: #0f3460;
+            border: 2px solid #533483;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            flex-shrink: 0;
+        }
+        
+        .unitCard:hover:not(.locked):not(.producing) {
+            border-color: #e94560;
+            transform: translateY(-2px);
+        }
+        
+        .unitCard.locked {
+            opacity: 0.4;
+            cursor: not-allowed;
+            background: repeating-linear-gradient(
+                45deg,
+                #0f3460,
+                #0f3460 10px,
+                #1a1a2e 10px,
+                #1a1a2e 20px
+            );
+        }
+        
+        .unitCard.producing {
+            border-color: #ffd700;
+        }
+        
+        .unitCard.no-gold {
+            border-color: #ff0000;
+            animation: shake 0.3s;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-3px); }
+            75% { transform: translateX(3px); }
+        }
+        
+        .unitIcon {
+            width: 26px;
+            height: 26px;
+            margin-bottom: 2px;
+        }
+        
+        .unitName {
+            font-size: 9px;
+            text-align: center;
+            line-height: 1;
+            margin-bottom: 2px;
+        }
+        
+        .unitCost {
+            font-size: 11px;
+            color: #ffd700;
+        }
+        
+        .produceBar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: #333;
+            border-radius: 0 0 4px 4px;
+        }
+        
+        .produceFill {
+            height: 100%;
+            background: #ffd700;
+            width: 0%;
+            transition: width 0.1s linear;
+            border-radius: 0 0 0 4px;
+        }
+        
+        /* 控制和資源區 */
+        #controlRow {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 10px;
+        }
+        
+        #resourceDisplay {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .resource {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 18px;
+        }
+        
+        .goldIcon {
+            color: #ffd700;
+            font-size: 20px;
+            text-shadow: 0 0 5px #ffd700;
+        }
+        
+        #speedControl {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        #speedSlider {
+            width: 120px;
+            height: 5px;
+            -webkit-appearance: none;
+            background: #333;
+            border-radius: 3px;
+            outline: none;
+        }
+        
+        #speedSlider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            background: #e94560;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        /* 暫停按鈕 - 無背景 */
+        #pauseBtn {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* 進化選擇彈窗 */
+        #evolveModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #evolveModal.active {
+            display: flex;
+        }
+        
+        .modalContent {
+            background: #16213e;
+            border: 2px solid #e94560;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            max-width: 350px;
+            width: 90%;
+        }
+        
+        .modalTitle {
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .evolveOptions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .evolveOption {
+            padding: 12px;
+            background: #0f3460;
+            border: 2px solid #533483;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .evolveOption:hover {
+            border-color: #e94560;
+            background: #1a4a7a;
+        }
+        
+        .stayOption {
+            margin-top: 8px;
+            padding: 8px;
+            color: #888;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        /* 時代視覺效果 */
+        .era-1 { color: #fff; }
+        .era-2 { color: #a8d8ea; }
+        .era-3 { color: #ff6b6b; }
+        .era-4 { color: #ffd93d; }
+        .era-5 { color: #6bcf7f; }
+        .era-6 { color: #a8e6cf; }
+        .era-7 { color: #7fcdcd; }
+        .era-8 { color: #5d8aa8; }
+        .era-9 { color: #b8e6b8; }
+        .era-10 { color: #98d8c8; }
+        .era-11 { color: #ffd700; }
+        .era-12 { color: #ff8c00; }
+        .era-13 { color: #daa520; }
+        .era-14 { color: #cd853f; }
+        .era-15 { color: #8fbc8f; }
+        .era-16 { color: #b8860b; }
+        .era-17 { color: #f0f0f0; }
+        .era-18 { color: #4169e1; }
+        .era-19 { color: #00ced1; }
+        .era-20 { color: #7fffd4; }
+        
+        /* 速度視覺效果 */
+        .speed-5x { filter: brightness(0.95); }
+        .speed-10x { filter: brightness(0.9); }
+        
+        /* 遊戲結束畫面 */
+        #gameOverScreen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 200;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        
+        #gameOverScreen.active {
+            display: flex;
+        }
+        
+        .gameOverTitle {
+            font-size: 36px;
+            margin-bottom: 15px;
+        }
+        
+        .gameOverStats {
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+        
+        .restartBtn {
+            padding: 12px 30px;
+            font-size: 18px;
+            background: #e94560;
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        
+        /* 響應式調整 */
+        @media (max-height: 500px) {
+            #topBar { height: 35px; }
+            #bottomBar { height: 100px; }
+            .unitCard { width: 55px; height: 70px; }
+            .unitIcon { width: 22px; height: 22px; }
+            .baseIcon { width: 40px; height: 40px; font-size: 22px; }
+            .baseHealthBar { width: 50px; height: 5px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- 強制橫向提示 -->
+    <div id="orientationLock">
+        <div class="rotateIcon">📱</div>
+        <div class="orientationText">請將裝置轉為橫向</div>
+        <div class="orientationSub">本遊戲僅支援橫向模式遊玩</div>
+    </div>
+    
+    <div id="gameContainer">
+        <!-- 頂部狀態列 -->
+        <div id="topBar">
+            <div id="eraInfo">
+                <span id="eraName">時代 1：虛無</span>
+                <button id="evolveBtn" onclick="showEvolveModal()">進化 ▶</button>
+                <div id="xpBar">
+                    <div class="xpFill" id="xpFill" style="width: 0%"></div>
+                </div>
+                <span id="xpText" style="font-size: 11px;">0/100</span>
+            </div>
+        </div>
+        
+        <!-- 戰場區域 -->
+        <div id="battleField">
+            <!-- 我方基地 -->
+            <div class="base" id="base">
+                <div class="baseHealthBar">
+                    <div class="baseHealthFill friendly" id="healthFill" style="width: 100%"></div>
+                </div>
+                <div class="baseIcon era-base-1" id="baseIcon">🏛️</div>
+            </div>
+            
+            <!-- 敵方基地 -->
+            <div class="base" id="enemyBase">
+                <div class="baseHealthBar">
+                    <div class="baseHealthFill enemy" id="enemyHealthFill" style="width: 100%"></div>
+                </div>
+                <div class="baseIcon enemy-base-1" id="enemyBaseIcon">🏰</div>
+            </div>
+        </div>
+        
+        <!-- 底部控制區 -->
+        <div id="bottomBar">
+            <!-- 單位生產列 -->
+            <div id="unitRow"></div>
+            
+            <!-- 控制區 -->
+            <div id="controlRow">
+                <div id="resourceDisplay">
+                    <div class="resource">
+                        <span class="goldIcon">🪙</span>
+                        <span id="goldDisplay">1000</span>
+                    </div>
+                </div>
+                
+                <div id="speedControl">
+                    <span style="font-size: 12px;">速度:</span>
+                    <input type="range" id="speedSlider" min="1" max="10" value="1" step="0.5">
+                    <span id="speedText" style="font-size: 12px; min-width: 30px;">1x</span>
+                    <button id="pauseBtn" onclick="togglePause()">⏸️</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 進化選擇彈窗 -->
+    <div id="evolveModal">
+        <div class="modalContent">
+            <div class="modalTitle">時代晉升</div>
+            <div style="font-size: 14px; margin-bottom: 5px;">當前：<span id="currentEraName">虛無</span></div>
+            <div style="font-size: 12px; color: #888; margin-bottom: 15px;">XP：<span id="currentXP">0</span>/<span id="neededXP">100</span></div>
+            
+            <div class="evolveOptions">
+                <div class="evolveOption" onclick="evolveNext()">
+                    <div style="font-size: 14px;">進化到下一時代</div>
+                    <div id="nextEraName" style="color: #ffd700; margin-top: 4px; font-size: 12px;">時代 2：時空織造</div>
+                </div>
+                <div class="evolveOption" onclick="enhanceCurrent()">
+                    <div style="font-size: 14px;">強化當前時代</div>
+                    <div style="color: #aaa; margin-top: 4px; font-size: 11px;">等級 <span id="currentLevel">1</span> → <span id="nextLevel">2</span>（數值+20%）</div>
+                </div>
+            </div>
+            
+            <div class="stayOption" onclick="closeEvolveModal()">暫時停留，繼續累積</div>
+        </div>
+    </div>
+    
+    <!-- 遊戲結束畫面 -->
+    <div id="gameOverScreen">
+        <div class="gameOverTitle" id="resultTitle">遊戲結束</div>
+        <div class="gameOverStats">存活到關卡 <span id="finalWave">1</span></div>
+        <div class="gameOverStats">達到時代 <span id="finalEra">1</span>： <span id="finalEraName">虛無</span></div>
+        <button class="restartBtn" onclick="location.reload()">重新開始</button>
+    </div>
+
+    <script>
+        // ==================== 強制橫向檢測 ====================
+        
+        function checkOrientation() {
+            const orientationLock = document.getElementById('orientationLock');
+            const gameContainer = document.getElementById('gameContainer');
+            
+            const isPortrait = window.innerHeight > window.innerWidth;
+            
+            if (isPortrait) {
+                orientationLock.classList.add('active');
+                gameContainer.style.display = 'none';
+            } else {
+                orientationLock.classList.remove('active');
+                gameContainer.style.display = 'flex';
+            }
+        }
+        
+        checkOrientation();
+        window.addEventListener('resize', checkOrientation);
+        window.addEventListener('orientationchange', checkOrientation);
+        
+        if (screen.orientation && screen.orientation.lock) {
+            screen.orientation.lock('landscape').catch(() => {});
+        }
+        
+        // ==================== 遊戲數據 ====================
+        
+        const ERAS = [
+            { name: "虛無", color: "#fff", units: ["可能性之種", "虛無觸鬚"] },
+            { name: "時空織造", color: "#a8d8ea", units: ["時間線", "空間褶皺"] },
+            { name: "物質誕生", color: "#ff6b6b", units: ["夸克三重奏", "膠子束縛"] },
+            { name: "能量湧動", color: "#ffd93d", units: ["光子群", "電磁脈衝"] },
+            { name: "原子鍛造", color: "#6bcf7f", units: ["電子雲", "質子核"] },
+            { name: "分子交響", color: "#a8e6cf", units: ["自由基", "酶催化劑"] },
+            { name: "大分子湯", color: "#7fcdcd", units: ["氨基酸鏈", "脂質膜"] },
+            { name: "原核霸權", color: "#5d8aa8", units: ["桿菌戰士", "古菌極端者"] },
+            { name: "真核革命", color: "#b8e6b8", units: ["細胞核指揮官", "線粒體工兵"] },
+            { name: "多細胞協作", color: "#98d8c8", units: ["上皮組織", "間充質細胞"] },
+            { name: "神經脈衝", color: "#ffd700", units: ["感覺神經元", "運動神經元"] },
+            { name: "反射弧", color: "#ff8c00", units: ["感受器", "效應器"] },
+            { name: "學習記憶", color: "#daa520", units: ["短期記憶", "長期記憶"] },
+            { name: "工具符號", color: "#cd853f", units: ["工具使用者", "符號傳遞者"] },
+            { name: "農業定居", color: "#8fbc8f", units: ["農民戰士", "馴化獸"] },
+            { name: "冶金鍛造", color: "#b8860b", units: ["青銅戰士", "鐵匠"] },
+            { name: "蒸汽動力", color: "#f0f0f0", units: ["蒸汽步兵", "差分機師"] },
+            { name: "電氣文明", color: "#4169e1", units: ["電擊兵", "無線電員"] },
+            { name: "數位覺醒", color: "#00ced1", units: ["像素戰士", "位元流"] },
+            { name: "網路基因", color: "#7fffd4", units: ["賽博格", "基因駭客"] }
+        ];
+        
+        // ==================== 遊戲狀態 ====================
+        
+        let gameState = {
+            era: 1,
+            eraLevel: 1,
+            xp: 0,
+            xpNeeded: 100,
+            baseHealth: 1000,
+            maxHealth: 1000,
+            enemyHealth: 1000,
+            enemyMaxHealth: 1000,
+            gold: 1000, // 初始1000
+            gameSpeed: 1,
+            paused: false,
+            wave: 1,
+            units: [],
+            enemyUnits: [],
+            lastTime: 0,
+            gameOver: false,
+            gameTime: 0, // 遊戲時間（秒）
+            
+            // 敵方經濟（不顯示在介面）
+            enemyEra: 1,
+            enemyGold: 0,
+            enemyBaseIncome: 5 // 基礎收入，隨時代和時間增加
+        };
+        
+        // 生產狀態
+        let productionState = {
+            isProducing: false,
+            currentUnit: null,
+            progress: 0
+        };
+        
+        // ==================== 初始化 ====================
+        
+        function init() {
+            if (window.innerHeight > window.innerWidth) return;
+            
+            updateUI();
+            renderUnitCards();
+            updateBaseAppearance();
+            
+            // 速度控制
+            document.getElementById('speedSlider').addEventListener('input', (e) => {
+                gameState.gameSpeed = parseFloat(e.target.value);
+                document.getElementById('speedText').textContent = gameState.gameSpeed + 'x';
+                
+                const field = document.getElementById('battleField');
+                field.classList.remove('speed-5x', 'speed-10x');
+                if (gameState.gameSpeed >= 8) field.classList.add('speed-10x');
+                else if (gameState.gameSpeed >= 4) field.classList.add('speed-5x');
+            });
+            
+            // 啟動遊戲循環
+            requestAnimationFrame(gameLoop);
+            
+            // 敵方經濟系統（每秒）
+            setInterval(() => {
+                if (!gameState.paused && !gameState.gameOver) {
+                    // 遊戲時間增加
+                    gameState.gameTime++;
+                    
+                    // 計算敵方收入：基礎 × 時代倍數 × 時間加成
+                    const timeBonus = 1 + (gameState.gameTime / 60) * 0.05; // 每分鐘+5%
+                    const eraMultiplier = Math.pow(2, gameState.enemyEra - 1); // 時代大幅加成
+                    const income = gameState.enemyBaseIncome * eraMultiplier * timeBonus;
+                    
+                    gameState.enemyGold += income;
+                    
+                    // 敵方AI：累積金幣生產單位
+                    enemyAIProduce();
+                }
+            }, 1000);
+        }
+        
+        // 敵方AI生產
+        function enemyAIProduce() {
+            const costs = [30, 50, 70, 90, 110];
+            const affordable = costs.filter((c, i) => c <= gameState.enemyGold && i < 2);
+            
+            if (affordable.length > 0) {
+                // 優先生產貴的
+                const cost = affordable[affordable.length - 1];
+                const index = costs.indexOf(cost);
+                
+                gameState.enemyGold -= cost;
+                spawnEnemyUnit(index);
+            }
+        }
+        
+        // ==================== UI 更新 ====================
+        
+        function updateUI() {
+            const era = ERAS[gameState.era - 1];
+            
+            // 時代顯示
+            document.getElementById('eraName').textContent = `時代 ${gameState.era}：${era.name}`;
+            document.getElementById('eraName').style.color = era.color;
+            
+            // 我方基地血條
+            const healthPercent = Math.max(0, (gameState.baseHealth / gameState.maxHealth) * 100);
+            document.getElementById('healthFill').style.width = healthPercent + '%';
+            
+            // 敵方基地血條
+            const enemyHealthPercent = Math.max(0, (gameState.enemyHealth / gameState.enemyMaxHealth) * 100);
+            document.getElementById('enemyHealthFill').style.width = enemyHealthPercent + '%';
+            
+            // 金幣（僅顯示我方）
+            document.getElementById('goldDisplay').textContent = Math.floor(gameState.gold);
+            
+            // XP
+            const xpPercent = Math.min(100, (gameState.xp / gameState.xpNeeded) * 100);
+            document.getElementById('xpFill').style.width = xpPercent + '%';
+            document.getElementById('xpText').textContent = `${Math.floor(gameState.xp)}/${gameState.xpNeeded}`;
+            
+            // 進化按鈕
+            const evolveBtn = document.getElementById('evolveBtn');
+            if (gameState.xp >= gameState.xpNeeded && gameState.era < 20) {
+                evolveBtn.classList.add('ready');
+            } else {
+                evolveBtn.classList.remove('ready');
+            }
+            
+            // 更新生產進度
+            updateProductionUI();
+        }
+        
+        // 更新基地外觀
+        function updateBaseAppearance() {
+            const baseIcon = document.getElementById('baseIcon');
+            const enemyBaseIcon = document.getElementById('enemyBaseIcon');
+            
+            // 移除舊的時代class
+            for (let i = 1; i <= 20; i++) {
+                baseIcon.classList.remove(`era-base-${i}`);
+                enemyBaseIcon.classList.remove(`enemy-base-${i}`);
+            }
+            
+            // 添加新的時代class
+            baseIcon.classList.add(`era-base-${gameState.era}`);
+            enemyBaseIcon.classList.add(`enemy-base-${gameState.enemyEra}`);
+        }
+        
+        function renderUnitCards() {
+            const container = document.getElementById('unitRow');
+            container.innerHTML = '';
+            
+            const era = ERAS[gameState.era - 1];
+            const unitCosts = [30, 50, 70, 90, 110];
+            
+            era.units.forEach((unitName, index) => {
+                const cost = unitCosts[index] || (30 + index * 20);
+                const isLocked = index >= 2 && gameState.eraLevel < 2;
+                const isProducing = productionState.isProducing && productionState.currentUnit === index;
+                
+                const card = document.createElement('div');
+                card.className = `unitCard ${isLocked ? 'locked' : ''} ${isProducing ? 'producing' : ''}`;
+                card.id = `unit-${index}`;
+                card.onclick = () => produceUnit(index, cost);
+                
+                // 單位圖示
+                const icon = document.createElement('div');
+                icon.className = 'unitIcon';
+                icon.innerHTML = getUnitSVG(gameState.era, index);
+                icon.style.color = era.color;
+                
+                // 單位名稱
+                const name = document.createElement('div');
+                name.className = 'unitName';
+                name.textContent = unitName;
+                
+                // 消耗
+                const costDiv = document.createElement('div');
+                costDiv.className = 'unitCost';
+                costDiv.textContent = `🪙${cost}`;
+                
+                // 生產進度條
+                const bar = document.createElement('div');
+                bar.className = 'produceBar';
+                const fill = document.createElement('div');
+                fill.className = 'produceFill';
+                fill.id = `produce-fill-${index}`;
+                bar.appendChild(fill);
+                
+                card.appendChild(icon);
+                card.appendChild(name);
+                card.appendChild(costDiv);
+                card.appendChild(bar);
+                
+                // 鎖定標記
+                if (isLocked) {
+                    const lockText = document.createElement('div');
+                    lockText.textContent = '🔒';
+                    lockText.style.position = 'absolute';
+                    lockText.style.top = '3px';
+                    lockText.style.right = '3px';
+                    lockText.style.fontSize = '10px';
+                    card.appendChild(lockText);
+                }
+                
+                container.appendChild(card);
+            });
+        }
+        
+        function getUnitSVG(era, unitIndex) {
+            const shapes = [
+                `<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="15" fill="currentColor" opacity="0.9"/></svg>`,
+                `<svg viewBox="0 0 40 40"><rect x="10" y="10" width="20" height="20" fill="currentColor"/></svg>`,
+                `<svg viewBox="0 0 40 40"><polygon points="20,5 35,35 5,35" fill="currentColor"/></svg>`,
+                `<svg viewBox="0 0 40 40"><ellipse cx="20" cy="20" rx="15" ry="10" fill="currentColor"/></svg>`,
+                `<svg viewBox="0 0 40 40"><path d="M10 20 L30 20 M20 10 L20 30" stroke="currentColor" stroke-width="4"/></svg>`
+            ];
+            return shapes[(era + unitIndex) % shapes.length];
+        }
+        
+        function updateProductionUI() {
+            if (productionState.isProducing && productionState.currentUnit !== null) {
+                const fill = document.getElementById(`produce-fill-${productionState.currentUnit}`);
+                if (fill) {
+                    fill.style.width = (productionState.progress * 100) + '%';
+                }
+            }
+        }
+        
+        // ==================== 單位生產 ====================
+        
+        function produceUnit(unitIndex, cost) {
+            if (gameState.paused || gameState.gameOver) return;
+            if (productionState.isProducing) return;
+            
+            const era = ERAS[gameState.era - 1];
+            const unitCount = era.units.length;
+            if (unitIndex >= unitCount) return;
+            
+            if (gameState.gold < cost) {
+                const card = document.getElementById(`unit-${unitIndex}`);
+                card.classList.add('no-gold');
+                setTimeout(() => card.classList.remove('no-gold'), 300);
+                return;
+            }
+            
+            gameState.gold -= cost;
+            productionState.isProducing = true;
+            productionState.currentUnit = unitIndex;
+            productionState.progress = 0;
+            
+            const card = document.getElementById(`unit-${unitIndex}`);
+            card.classList.add('producing');
+            
+            // 基地發光
+            const base = document.getElementById('baseIcon');
+            base.style.filter = 'brightness(1.5)';
+            setTimeout(() => base.style.filter = '', 300);
+            
+            updateUI();
+            
+            // 生產動畫
+            const produceInterval = setInterval(() => {
+                if (gameState.paused) return;
+                
+                productionState.progress += 0.05 * gameState.gameSpeed;
+                updateProductionUI();
+                
+                if (productionState.progress >= 1) {
+                    clearInterval(produceInterval);
+                    
+                    productionState.isProducing = false;
+                    card.classList.remove('producing');
+                    
+                    const fill = document.getElementById(`produce-fill-${unitIndex}`);
+                    if (fill) fill.style.width = '0%';
+                    
+                    spawnUnit(unitIndex, cost);
+                }
+            }, 50);
+        }
+        
+        // ==================== 我方單位系統 ====================
+        
+        function spawnUnit(unitIndex, cost) {
+            const field = document.getElementById('battleField');
+            const era = ERAS[gameState.era - 1];
+            
+            const baseMultiplier = Math.pow(1.5, gameState.era - 1) * (1 + (gameState.eraLevel - 1) * 0.2);
+            
+            const unit = {
+                id: Date.now() + Math.random(),
+                type: 'friendly',
+                era: gameState.era,
+                unitIndex: unitIndex,
+                x: 50,
+                y: (Math.random() - 0.5) * 60,
+                health: 80 * baseMultiplier,
+                maxHealth: 80 * baseMultiplier,
+                attack: 20 * baseMultiplier,
+                speed: 25 + (unitIndex * 8),
+                attackRange: 60,
+                lastAttack: 0,
+                element: null,
+                cost: cost
+            };
+            
+            gameState.units.push(unit);
+            renderUnit(unit);
+        }
+        
+        function renderUnit(unit) {
+            const field = document.getElementById('battleField');
+            const era = ERAS[unit.era - 1];
+            
+            const el = document.createElement('div');
+            el.className = `unit friendly era-${unit.era}`;
+            el.id = `unit-${unit.id}`;
+            el.style.left = unit.x + 'px';
+            el.style.top = (field.offsetHeight / 2 + unit.y - 12) + 'px';
+            el.style.width = '24px';
+            el.style.height = '24px';
+            
+            el.innerHTML = `<div class="unit-shape" style="color: ${era.color}">${getUnitSVG(unit.era, unit.unitIndex)}</div>`;
+            
+            field.appendChild(el);
+            unit.element = el;
+        }
+        
+        function updateUnits(dt) {
+            const field = document.getElementById('battleField');
+            const fieldWidth = field.offsetWidth;
+            const enemyBaseX = fieldWidth - 50;
+            
+            gameState.units = gameState.units.filter(unit => {
+                if (!unit.element) return false;
+                
+                // 檢查敵方單位
+                let target = null;
+                let minDist = unit.attackRange;
+                
+                for (let enemy of gameState.enemyUnits) {
+                    if (!enemy.element || enemy.health <= 0) continue;
+                    const dist = Math.abs(enemy.x - unit.x);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        target = enemy;
+                    }
+                }
+                
+                // 檢查是否到達敵方基地
+                const distToEnemyBase = enemyBaseX - (unit.x + 24);
+                
+                if (distToEnemyBase <= 0) {
+                    // 攻擊敵方基地
+                    const now = Date.now();
+                    if (now - unit.lastAttack > 800 / gameState.gameSpeed) {
+                        unit.lastAttack = now;
+                        attackEnemyBase(unit);
+                    }
+                } else if (target) {
+                    // 攻擊敵方單位
+                    const now = Date.now();
+                    if (now - unit.lastAttack > (1000 - unit.era * 30) / gameState.gameSpeed) {
+                        unit.lastAttack = now;
+                        performAttack(unit, target, 'friendly');
+                    }
+                } else {
+                    // 移動
+                    unit.x += unit.speed * dt * gameState.gameSpeed;
+                    unit.element.style.left = unit.x + 'px';
+                }
+                
+                // 檢查死亡
+                if (unit.health <= 0) {
+                    unit.element.remove();
+                    return false;
+                }
+                
+                return true;
+            });
+        }
+        
+        function attackEnemyBase(unit) {
+            const enemyBaseIcon = document.getElementById('enemyBaseIcon');
+            enemyBaseIcon.style.filter = 'brightness(1.5)';
+            setTimeout(() => enemyBaseIcon.style.filter = '', 100);
+            
+            gameState.enemyHealth -= unit.attack;
+            
+            if (gameState.enemyHealth <= 0) {
+                victory();
+            }
+            
+            updateUI();
+        }
+        
+        // ==================== 敵方單位系統 ====================
+        
+        function spawnEnemyUnit(unitIndex) {
+            if (gameState.gameOver) return;
+            
+            const field = document.getElementById('battleField');
+            const waveMultiplier = Math.pow(1.1, gameState.wave) * Math.pow(1.3, gameState.enemyEra - 1);
+            
+            const enemyUnit = {
+                id: Date.now() + Math.random(),
+                type: 'enemy',
+                unitIndex: unitIndex || 0,
+                x: field.offsetWidth - 50,
+                y: (Math.random() - 0.5) * 60,
+                health: 90 * waveMultiplier,
+                maxHealth: 90 * waveMultiplier,
+                attack: 12 * waveMultiplier,
+                speed: 20 + Math.min(gameState.wave * 2, 40),
+                attackRange: 60,
+                lastAttack: 0,
+                element: null
+            };
+            
+            gameState.enemyUnits.push(enemyUnit);
+            renderEnemyUnit(enemyUnit);
+        }
+        
+        function renderEnemyUnit(enemy) {
+            const field = document.getElementById('battleField');
+            
+            const el = document.createElement('div');
+            el.className = 'unit enemy';
+            el.id = `enemy-${enemy.id}`;
+            el.style.left = enemy.x + 'px';
+            el.style.top = (field.offsetHeight / 2 + enemy.y - 12) + 'px';
+            el.style.width = '26px';
+            el.style.height = '26px';
+            el.style.background = '#e94560';
+            el.style.clipPath = 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)';
+            
+            field.appendChild(el);
+            enemy.element = el;
+        }
+        
+        function updateEnemyUnits(dt) {
+            const myBaseX = 50;
+            
+            gameState.enemyUnits = gameState.enemyUnits.filter(enemy => {
+                if (!enemy.element) return false;
+                
+                // 檢查我方單位
+                let target = null;
+                let minDist = enemy.attackRange;
+                
+                for (let unit of gameState.units) {
+                    if (!unit.element || unit.health <= 0) continue;
+                    const dist = Math.abs(unit.x - enemy.x);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        target = unit;
+                    }
+                }
+                
+                // 檢查是否到達我方基地
+                const distToMyBase = enemy.x - myBaseX;
+                
+                if (distToMyBase <= 0) {
+                    // 攻擊我方基地
+                    const now = Date.now();
+                    if (now - enemy.lastAttack > 800 / gameState.gameSpeed) {
+                        enemy.lastAttack = now;
+                        attackMyBase(enemy);
+                    }
+                } else if (target) {
+                    // 攻擊我方單位
+                    const now = Date.now();
+                    if (now - enemy.lastAttack > 900 / gameState.gameSpeed) {
+                        enemy.lastAttack = now;
+                        performAttack(enemy, target, 'enemy');
+                    }
+                } else {
+                    // 移動
+                    enemy.x -= enemy.speed * dt * gameState.gameSpeed;
+                    enemy.element.style.left = enemy.x + 'px';
+                }
+                
+                // 檢查死亡
+                if (enemy.health <= 0) {
+                    // 獲得XP
+                    gameState.xp += 12 * gameState.wave;
+                    enemy.element.remove();
+                    return false;
+                }
+                
+                return true;
+            });
+        }
+        
+        function attackMyBase(enemy) {
+            const baseIcon = document.getElementById('baseIcon');
+            baseIcon.style.filter = 'brightness(1.5)';
+            setTimeout(() => baseIcon.style.filter = '', 100);
+            
+            gameState.baseHealth -= enemy.attack;
+            
+            if (gameState.baseHealth <= 0) {
+                gameOver();
+            }
+            
+            updateUI();
+        }
+        
+        // ==================== 攻擊系統 ====================
+        
+        function performAttack(attacker, target, type) {
+            const field = document.getElementById('battleField');
+            
+            const projectile = document.createElement('div');
+            projectile.className = 'attack';
+            
+            const startX = attacker.x + 12;
+            const startY = parseFloat(attacker.element.style.top) + 12;
+            const targetX = target.x + 12;
+            const targetY = parseFloat(target.element.style.top) + 12;
+            
+            const angle = Math.atan2(targetY - startY, targetX - startX);
+            const distance = Math.sqrt(Math.pow(targetX - startX, 2) + Math.pow(targetY - startY, 2));
+            
+            const color = type === 'friendly' ? ERAS[attacker.era - 1].color : '#e94560';
+            
+            projectile.style.cssText = `
+                position: absolute;
+                left: ${startX}px;
+                top: ${startY}px;
+                width: ${distance}px;
+                height: 2px;
+                background: ${color};
+                transform-origin: left center;
+                transform: rotate(${angle}rad);
+                opacity: 0.7;
+            `;
+            
+            field.appendChild(projectile);
+            
+            setTimeout(() => {
+                projectile.remove();
+                
+                target.health -= attacker.attack;
+                
+                if (target.element) {
+                    target.element.style.filter = 'brightness(2)';
+                    setTimeout(() => {
+                        if (target.element) target.element.style.filter = type === 'friendly' ? `drop-shadow(0 0 2px ${type === 'friendly' ? ERAS[target.era - 1].color : '#e94560'})` : 'drop-shadow(0 0 2px #e94560)';
+                    }, 100);
+                }
+            }, 30 / gameState.gameSpeed);
+        }
+        
+        // ==================== 進化系統 ====================
+        
+        function showEvolveModal() {
+            if (gameState.xp < gameState.xpNeeded || gameState.era >= 20) return;
+            
+            const modal = document.getElementById('evolveModal');
+            const era = ERAS[gameState.era - 1];
+            const nextEra = ERAS[gameState.era] || ERAS[19];
+            
+            document.getElementById('currentEraName').textContent = era.name;
+            document.getElementById('currentEraName').style.color = era.color;
+            document.getElementById('currentXP').textContent = Math.floor(gameState.xp);
+            document.getElementById('neededXP').textContent = gameState.xpNeeded;
+            document.getElementById('nextEraName').textContent = `時代 ${Math.min(gameState.era + 1, 20)}：${nextEra.name}`;
+            document.getElementById('currentLevel').textContent = gameState.eraLevel;
+            document.getElementById('nextLevel').textContent = gameState.eraLevel + 1;
+            
+            modal.classList.add('active');
+            gameState.paused = true;
+        }
+        
+        function closeEvolveModal() {
+            document.getElementById('evolveModal').classList.remove('active');
+            gameState.paused = false;
+        }
+        
+        function evolveNext() {
+            if (gameState.era < 20) {
+                gameState.era++;
+                gameState.xp -= gameState.xpNeeded;
+                gameState.xpNeeded = Math.floor(gameState.xpNeeded * 1.5);
+                gameState.eraLevel = 1;
+                
+                gameState.wave = Math.floor(gameState.wave * 1.2);
+                gameState.enemyMaxHealth = Math.floor(gameState.enemyMaxHealth * 1.3);
+                gameState.enemyHealth = gameState.enemyMaxHealth;
+                
+                // 更新基地外觀
+                updateBaseAppearance();
+            }
+            
+            renderUnitCards();
+            updateUI();
+            closeEvolveModal();
+        }
+        
+        function enhanceCurrent() {
+            gameState.eraLevel++;
+            gameState.xp -= gameState.xpNeeded;
+            gameState.xpNeeded = Math.floor(gameState.xpNeeded * 1.3);
+            updateUI();
+            closeEvolveModal();
+        }
+        
+        // ==================== 遊戲控制 ====================
+        
+        function togglePause() {
+            if (gameState.gameOver) return;
+            gameState.paused = !gameState.paused;
+            document.getElementById('pauseBtn').textContent = gameState.paused ? '▶️' : '⏸️';
+        }
+        
+        function gameOver() {
+            gameState.gameOver = true;
+            gameState.paused = true;
+            
+            document.getElementById('resultTitle').textContent = '失敗';
+            document.getElementById('resultTitle').style.color = '#e94560';
+            document.getElementById('finalWave').textContent = gameState.wave;
+            document.getElementById('finalEra').textContent = gameState.era;
+            document.getElementById('finalEraName').textContent = ERAS[gameState.era - 1].name;
+            
+            document.getElementById('gameOverScreen').classList.add('active');
+        }
+        
+        function victory() {
+            gameState.gameOver = true;
+            gameState.paused = true;
+            
+            document.getElementById('resultTitle').textContent = '勝利';
+            document.getElementById('resultTitle').style.color = '#6bcf7f';
+            document.getElementById('finalWave').textContent = gameState.wave;
+            document.getElementById('finalEra').textContent = gameState.era;
+            document.getElementById('finalEraName').textContent = ERAS[gameState.era - 1].name;
+            
+            document.getElementById('gameOverScreen').classList.add('active');
+        }
+        
+        // ==================== 遊戲循環 ====================
+        
+        function gameLoop(timestamp) {
+            if (!gameState.lastTime) gameState.lastTime = timestamp;
+            const dt = Math.min((timestamp - gameState.lastTime) / 1000, 0.1);
+            gameState.lastTime = timestamp;
+            
+            if (!gameState.paused && !gameState.gameOver) {
+                updateUnits(dt);
+                updateEnemyUnits(dt);
+                updateUI();
+            }
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // 延遲初始化
+        setTimeout(init, 100);
+    </script>
+</body>
+</html>
