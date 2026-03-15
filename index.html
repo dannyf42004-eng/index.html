@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>進化紀元：資源平衡版</title>
+    <title>進化紀元：血戰修復版</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; touch-action: none; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-touch-callout: none; user-select: none; touch-action: none; }
         body, html { background: #1a1a1a; width: 100%; height: 100%; overflow: hidden; position: fixed; font-family: 'PingFang TC', sans-serif; }
         #mainStage { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         #startMenu { position: absolute; width: 100%; height: 100%; z-index: 2000; background: linear-gradient(to bottom, #4facfe, #00f2fe); display: flex; flex-direction: column; justify-content: center; align-items: center; }
@@ -16,7 +16,9 @@
         .base { position: absolute; bottom: 22%; width: 140px; display: flex; flex-direction: column; align-items: center; z-index: 5; }
         #playerBase { left: 10px; }
         #enemyBase { right: 10px; }
-        .unit { position: absolute; bottom: 22%; width: 60px; display: flex; flex-direction: column; align-items: center; z-index: 50; transition: transform 0.1s; }
+        .unit { position: absolute; bottom: 22%; width: 60px; display: flex; flex-direction: column; align-items: center; z-index: 50; }
+        .hpBarContainer { width: 40px; height: 6px; background: #000; border: 1px solid #fff; border-radius: 3px; overflow: hidden; margin-bottom: 5px; }
+        .hpFill { height: 100%; transition: width 0.1s; }
         #bottomBar { background: rgba(30, 20, 10, 0.95); height: 110px; padding-bottom: env(safe-area-inset-bottom); display: flex; justify-content: center; align-items: center; border-top: 4px solid #8b4513; }
         #unitRow { display: flex; gap: 10px; }
         .unitCard { width: 75px; height: 85px; background: #d2b48c; border: 2px solid #8b4513; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
@@ -33,22 +35,22 @@
     <div id="gameContainer">
         <div id="topBar" style="padding: env(safe-area-inset-top) 15px 10px 15px; background: rgba(0,0,0,0.7); display: flex; justify-content: space-between; align-items: center;">
             <div style="color:#ffd700; font-weight:bold;">🪙 <span id="goldDisp">500</span> <span style="font-size:10px; color:#aaa;">(+20/s)</span></div>
-            <div style="color:#fff; font-size:12px;">敵軍: <span id="enemyAiStatus">蓄勢中</span></div>
+            <div style="color:#fff; font-size:12px;">戰況: <span id="enemyAiStatus">檢測中</span></div>
             <button onclick="playerEvolve()" id="evolveBtn" style="background:#e67e22; border:none; padding:6px 15px; border-radius:8px; color:#fff; font-size:12px; font-weight:bold;">進化</button>
         </div>
         <div id="viewport"><div id="battlefield">
-            <div id="playerBase" class="base"><div style="width:100px; height:10px; background:#222; margin-bottom:10px; border-radius:5px; border:2px solid #fff; overflow:hidden;"><div id="pHpFill" style="height:100%; width:100%; background:#2ecc71;"></div></div><div id="pBaseIcon" style="font-size:80px;">🛖</div></div>
-            <div id="enemyBase" class="base"><div style="width:100px; height:10px; background:#222; margin-bottom:10px; border-radius:5px; border:2px solid #fff; overflow:hidden;"><div id="eHpFill" style="height:100%; width:100%; background:#e74c3c;"></div></div><div id="eBaseIcon" style="font-size:80px;">🧱</div></div>
+            <div id="playerBase" class="base"><div class="hpBarContainer" style="width:100px;"><div id="pHpFill" style="width:100%; background:#2ecc71;" class="hpFill"></div></div><div id="pBaseIcon" style="font-size:80px;">🛖</div></div>
+            <div id="enemyBase" class="base"><div class="hpBarContainer" style="width:100px;"><div id="eHpFill" style="width:100%; background:#e74c3c;" class="hpFill"></div></div><div id="eBaseIcon" style="font-size:80px;">🧱</div></div>
         </div></div>
         <div id="bottomBar"><div id="unitRow"></div></div>
     </div>
 </div>
 
 <script>
-    const CONFIG = { baseHp: 50000, evolveBase: 5000, killReward: 0.8, pIncome: 20, eIncome: 200, collisionRange: 60, baseStopRange: 130 };
+    const CONFIG = { baseHp: 50000, evolveBase: 5000, killReward: 0.8, pIncome: 20, eIncome: 200, collisionRange: 65, baseStopRange: 130 };
     const ERAS = [
-        { name: "石器", bg: "url('https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1200')", base: "🛖", units: [{cost:50, icon:"🦴", hp:250, dmg:60}, {cost:250, icon:"🪨", hp:600, dmg:120}] },
-        { name: "青銅", bg: "url('https://images.unsplash.com/photo-1599733589046-10c005739ef0?w=1200')", base: "🏺", units: [{cost:1000, icon:"🔱", hp:2200, dmg:400}, {cost:3000, icon:"🐎", hp:5500, dmg:850}] }
+        { name: "石器", bg: "url('https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1200')", base: "🛖", units: [{cost:50, icon:"🦴", hp:300, dmg:80}, {cost:250, icon:"🪨", hp:700, dmg:150}] },
+        { name: "青銅", bg: "url('https://images.unsplash.com/photo-1599733589046-10c005739ef0?w=1200')", base: "🏺", units: [{cost:1000, icon:"🔱", hp:2500, dmg:500}, {cost:3000, icon:"🐎", hp:6000, dmg:1000}] }
     ];
 
     let state = { gold: 500, eGold: 1000, pHp: 50000, eHp: 50000, pEra: 0, eEra: 0, pUnits: [], eUnits: [], isRunning: false };
@@ -75,48 +77,76 @@
     function enemyAI() {
         if(!state.isRunning) return;
         const era = ERAS[state.eEra];
-        const nextEvolveCost = Math.floor(CONFIG.evolveBase * Math.pow(3, state.eEra));
+        const nextCost = Math.floor(CONFIG.evolveBase * Math.pow(3, state.eEra));
         const statusEl = document.getElementById('enemyAiStatus');
-        if (state.eGold >= (nextEvolveCost * 0.8)) {
+        
+        if (state.eGold >= (nextCost * 0.8)) {
             statusEl.innerText = "⚠️ 總進攻"; statusEl.style.color = "#ff4757";
             if (state.eGold >= era.units[1].cost) spawn(false, 1);
         } else {
             statusEl.innerText = "蓄勢中"; statusEl.style.color = "#fff";
             if (state.eGold >= era.units[0].cost) spawn(false, 0);
         }
-        if (state.eGold >= nextEvolveCost && state.eEra < ERAS.length - 1) { state.eEra++; updateBackground(); }
+        if (state.eGold >= nextCost && state.eEra < ERAS.length - 1) { state.eEra++; updateBackground(); }
     }
 
     function update() {
         if (!state.isRunning) return;
         const screenW = window.innerWidth;
+
+        // 處理我方士兵與敵方士兵的互動
         [state.pUnits, state.eUnits].forEach((units, i) => {
             const isP = i === 0;
             const enemies = isP ? state.eUnits : state.pUnits;
-            const baseWallX = isP ? screenW - CONFIG.baseStopRange : CONFIG.baseStopRange;
+            const stopX = isP ? screenW - CONFIG.baseStopRange : CONFIG.baseStopRange;
+
             units.forEach(u => {
+                // 碰撞檢測：尋找最近的敵人
                 let target = enemies.find(e => Math.abs(u.pos - e.pos) < CONFIG.collisionRange);
-                if (target) { target.hp -= (u.dmg / 60); u.el.style.transform = `translateX(${isP?5:-5}px)`; }
-                else if ((isP && u.pos >= baseWallX) || (!isP && u.pos <= baseWallX)) {
+                
+                if (target) {
+                    // 核心修正：正確扣除目標血量，並更新血條寬度
+                    target.hp -= (u.dmg / 60); 
+                    u.el.style.transform = `translateX(${isP?8:-8}px)`; // 攻擊抖動
+                } else if ((isP && u.pos >= stopX) || (!isP && u.pos <= stopX)) {
+                    // 攻擊基地
                     if(isP) state.eHp -= (u.dmg / 60); else state.pHp -= (u.dmg / 60);
-                    u.el.style.transform = `translateX(${isP?5:-5}px)`;
-                } else { u.pos += (isP ? 2.3 : -2.3); u.el.style.transform = `translateX(0px)`; }
+                    u.el.style.transform = `translateX(${isP?8:-8}px)`;
+                } else {
+                    // 沒路障則前進
+                    u.pos += (isP ? 2.5 : -2.5);
+                    u.el.style.transform = `translateX(0px)`;
+                }
                 u.el.style.left = u.pos + 'px';
-                u.hpEl.style.width = (u.hp / u.maxHp * 100) + '%';
+                // 即時更新血條
+                if(u.hpEl) u.hpEl.style.width = Math.max(0, (u.hp / u.maxHp * 100)) + '%';
             });
         });
-        state.eUnits = state.eUnits.filter(u => { if (u.hp <= 0) { state.gold += (u.cost * CONFIG.killReward); u.el.remove(); return false; } return true; });
-        state.pUnits = state.pUnits.filter(u => { if(u.hp <= 0) { u.el.remove(); return false; } return true; });
-        updateHealth();
+
+        // 清理死亡單位並給予獎勵
+        state.eUnits = state.eUnits.filter(u => {
+            if (u.hp <= 0) { state.gold += (u.cost * CONFIG.killReward); u.el.remove(); return false; }
+            return true;
+        });
+        state.pUnits = state.pUnits.filter(u => {
+            if (u.hp <= 0) { u.el.remove(); return false; }
+            return true;
+        });
+
+        updateHealthBars();
     }
 
     function spawn(isP, idx) {
         const era = ERAS[isP ? state.pEra : state.eEra];
         const data = era.units[idx];
-        if (isP) { if (state.gold < data.cost) return; state.gold -= data.cost; }
-        const el = document.createElement('div'); el.className = 'unit';
-        el.innerHTML = `<div style="width:40px;height:5px;background:#000;border:1px solid #fff;border-radius:3px;overflow:hidden;margin-bottom:5px;"><div class="hpFill" style="width:100%;height:100%;background:${isP?'#2ecc71':'#e74c3c'}"></div></div><div style="font-size:50px;">${data.icon}</div>`;
+        if (isP && state.gold < data.cost) return;
+        if (isP) state.gold -= data.cost;
+
+        const el = document.createElement('div');
+        el.className = 'unit';
+        el.innerHTML = `<div class="hpBarContainer"><div class="hpFill" style="width:100%; background:${isP?'#2ecc71':'#e74c3c'}"></div></div><div style="font-size:50px;">${data.icon}</div>`;
         document.getElementById('battlefield').appendChild(el);
+
         const unit = { el, hpEl: el.querySelector('.hpFill'), pos: isP ? 130 : window.innerWidth - 130, hp: data.hp, maxHp: data.hp, dmg: data.dmg, cost: data.cost };
         if (isP) state.pUnits.push(unit); else state.eUnits.push(unit);
         updateUI();
@@ -141,10 +171,14 @@
         });
     }
 
-    function updateHealth() {
-        document.getElementById('pHpFill').style.width = (state.pHp / CONFIG.baseHp * 100) + '%';
-        document.getElementById('eHpFill').style.width = (state.eHp / CONFIG.baseHp * 100) + '%';
-        if (state.pHp <= 0 || state.eHp <= 0) { state.isRunning = false; alert(state.pHp <= 0 ? "YOU LOSE" : "YOU WIN"); location.reload(); }
+    function updateHealthBars() {
+        document.getElementById('pHpFill').style.width = Math.max(0, (state.pHp / CONFIG.baseHp * 100)) + '%';
+        document.getElementById('eHpFill').style.width = Math.max(0, (state.eHp / CONFIG.baseHp * 100)) + '%';
+        if (state.pHp <= 0 || state.eHp <= 0) {
+            state.isRunning = false;
+            alert(state.pHp <= 0 ? "你戰敗了..." : "大獲全勝！");
+            location.reload();
+        }
     }
 </script>
 </body>
