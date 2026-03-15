@@ -16,7 +16,7 @@
         }
         
         body {
-            background: #000;
+            background: #0f1419;
             color: #fff;
             font-family: 'Microsoft JhengHei', sans-serif;
             overflow: hidden;
@@ -24,83 +24,14 @@
             height: 100vh;
         }
         
-        /* 強制橫向提示 */
-        #orientationLock {
-            display: none;
+        /* 遊戲容器 - 滿版設計 */
+        #gameContainer {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: #1a1a2e;
-            z-index: 9999;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            text-align: center;
-            padding: 20px;
-        }
-        
-        #orientationLock.active {
-            display: flex;
-        }
-        
-        .rotateIcon {
-            font-size: 80px;
-            margin-bottom: 20px;
-            animation: rotatePhone 2s infinite;
-        }
-        
-        @keyframes rotatePhone {
-            0%, 100% { transform: rotate(0deg); }
-            50% { transform: rotate(90deg); }
-        }
-        
-        .orientationText {
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-        
-        .orientationSub {
-            font-size: 16px;
-            color: #888;
-        }
-        
-        /* 遊戲視口容器 - 固定 iPhone 12 Pro Max 比例 19.5:9 */
-        #gameViewport {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 100vmin;
-            height: calc(100vmin * 9 / 19.5);
-            max-width: 100vmax;
-            max-height: 100vmin;
-            background: #0f1419;
             overflow: hidden;
-            touch-action: none;
-        }
-        
-        /* 畫布容器 - 可移動縮放 */
-        #gameCanvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            transform-origin: center center;
-            transition: none;
-        }
-        
-        /* 黑邊填充 */
-        #letterbox {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            z-index: -1;
         }
         
         /* 縮放提示 */
@@ -122,6 +53,17 @@
         
         #zoomHint.active {
             opacity: 1;
+        }
+        
+        /* 遊戲畫布 - 可移動縮放 */
+        #gameCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform-origin: center center;
+            transition: none;
         }
         
         /* 頂部狀態列 */
@@ -293,7 +235,7 @@
         .enemy-base-19 { background: conic-gradient(from 0deg, #ff69b4, #ff1493, #ff69b4); clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
         .enemy-base-20 { background: radial-gradient(circle, #ff0000 0%, #8b0000 50%, #4a0000 100%); border-radius: 50%; box-shadow: 0 0 20px #ff0000, inset 0 0 10px #000; }
         
-        /* 單位樣式 - 無血條 */
+        /* 單位樣式 */
         .unit {
             position: absolute;
             transition: none;
@@ -484,7 +426,7 @@
             cursor: pointer;
         }
         
-        /* 暫停按鈕 - 無背景 */
+        /* 暫停按鈕 */
         #pauseBtn {
             background: transparent;
             border: none;
@@ -623,21 +565,11 @@
     </style>
 </head>
 <body>
-    <!-- 強制橫向提示 -->
-    <div id="orientationLock">
-        <div class="rotateIcon">📱</div>
-        <div class="orientationText">請將裝置轉為橫向</div>
-        <div class="orientationSub">本遊戲僅支援橫向模式遊玩</div>
-    </div>
-    
-    <!-- 黑邊背景 -->
-    <div id="letterbox"></div>
-    
     <!-- 縮放提示 -->
     <div id="zoomHint">雙指縮放調整視角</div>
     
-    <!-- 遊戲視口 - 固定 iPhone 12 Pro Max 比例 -->
-    <div id="gameViewport">
+    <!-- 遊戲容器 -->
+    <div id="gameContainer">
         <!-- 遊戲畫布 - 可移動縮放 -->
         <div id="gameCanvas">
             <!-- 頂部狀態列 -->
@@ -727,42 +659,18 @@
     </div>
 
     <script>
-        // ==================== 強制橫向檢測 ====================
-        
-        function checkOrientation() {
-            const orientationLock = document.getElementById('orientationLock');
-            const gameViewport = document.getElementById('gameViewport');
-            
-            const isPortrait = window.innerHeight > window.innerWidth;
-            
-            if (isPortrait) {
-                orientationLock.classList.add('active');
-                gameViewport.style.display = 'none';
-            } else {
-                orientationLock.classList.remove('active');
-                gameViewport.style.display = 'block';
-            }
-        }
-        
-        checkOrientation();
-        window.addEventListener('resize', checkOrientation);
-        window.addEventListener('orientationchange', checkOrientation);
-        
-        if (screen.orientation && screen.orientation.lock) {
-            screen.orientation.lock('landscape').catch(() => {});
-        }
-        
         // ==================== 雙指縮放與移動 ====================
         
         const gameCanvas = document.getElementById('gameCanvas');
         const zoomHint = document.getElementById('zoomHint');
+        const gameContainer = document.getElementById('gameContainer');
         
         let viewState = {
             scale: 1,
             x: 0,
             y: 0,
             minScale: 0.5,
-            maxScale: 2,
+            maxScale: 3,
             isDragging: false,
             lastX: 0,
             lastY: 0
@@ -786,7 +694,7 @@
         gameCanvas.addEventListener('touchmove', handleTouchMove, { passive: false });
         gameCanvas.addEventListener('touchend', handleTouchEnd, { passive: false });
         
-        // 滑鼠事件支援（桌面端測試）
+        // 滑鼠事件支援
         let mouseDown = false;
         gameCanvas.addEventListener('mousedown', (e) => {
             mouseDown = true;
@@ -820,16 +728,19 @@
         });
         
         function handleTouchStart(e) {
+            // 如果點擊在UI元素上，不處理縮放
+            if (e.target.closest('#topBar') || e.target.closest('#bottomBar') || e.target.closest('.base')) {
+                return;
+            }
+            
             e.preventDefault();
             touchState.touches = Array.from(e.touches);
             
             if (touchState.touches.length === 1) {
-                // 單指拖動
                 viewState.isDragging = true;
                 viewState.lastX = touchState.touches[0].clientX;
                 viewState.lastY = touchState.touches[0].clientY;
             } else if (touchState.touches.length === 2) {
-                // 雙指縮放
                 viewState.isDragging = false;
                 const dx = touchState.touches[0].clientX - touchState.touches[1].clientX;
                 const dy = touchState.touches[0].clientY - touchState.touches[1].clientY;
@@ -841,11 +752,15 @@
         }
         
         function handleTouchMove(e) {
+            // 如果點擊在UI元素上，不處理縮放
+            if (e.target.closest('#topBar') || e.target.closest('#bottomBar') || e.target.closest('.base')) {
+                return;
+            }
+            
             e.preventDefault();
             const touches = Array.from(e.touches);
             
             if (touches.length === 1 && viewState.isDragging) {
-                // 單指拖動
                 const dx = touches[0].clientX - viewState.lastX;
                 const dy = touches[0].clientY - viewState.lastY;
                 viewState.x += dx;
@@ -855,12 +770,10 @@
                 updateTransform();
                 
             } else if (touches.length === 2) {
-                // 雙指縮放
                 const dx = touches[0].clientX - touches[1].clientX;
                 const dy = touches[0].clientY - touches[1].clientY;
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 
-                // 計算縮放
                 if (touchState.lastDistance > 0) {
                     const scaleDelta = distance / touchState.lastDistance;
                     const newScale = Math.max(viewState.minScale, Math.min(viewState.maxScale, viewState.scale * scaleDelta));
@@ -868,7 +781,6 @@
                 }
                 touchState.lastDistance = distance;
                 
-                // 計算中心點移動
                 const centerX = (touches[0].clientX + touches[1].clientX) / 2;
                 const centerY = (touches[0].clientY + touches[1].clientY) / 2;
                 
@@ -893,7 +805,6 @@
                 touchState.lastCenterX = 0;
                 touchState.lastCenterY = 0;
             } else if (touchState.touches.length === 1) {
-                // 剩下一指，切換為拖動模式
                 viewState.isDragging = true;
                 viewState.lastX = touchState.touches[0].clientX;
                 viewState.lastY = touchState.touches[0].clientY;
@@ -902,28 +813,28 @@
         }
         
         function updateTransform() {
-            // 限制移動範圍，避免移出太多
-            const maxX = window.innerWidth * 0.5;
-            const maxY = window.innerHeight * 0.5;
-            viewState.x = Math.max(-maxX, Math.min(maxX, viewState.x));
-            viewState.y = Math.max(-maxY, Math.min(maxY, viewState.y));
-            
             gameCanvas.style.transform = `translate(${viewState.x}px, ${viewState.y}px) scale(${viewState.scale})`;
         }
         
-        // 重置視角按鈕（雙擊）
+        // 雙擊重置
         let lastTap = 0;
         gameCanvas.addEventListener('touchend', (e) => {
+            if (e.target.closest('#topBar') || e.target.closest('#bottomBar') || e.target.closest('.base')) {
+                return;
+            }
+            
             const now = Date.now();
             if (now - lastTap < 300) {
-                // 雙擊重置
                 viewState.scale = 1;
                 viewState.x = 0;
                 viewState.y = 0;
                 updateTransform();
                 zoomHint.textContent = '視角已重置';
                 zoomHint.classList.add('active');
-                setTimeout(() => zoomHint.classList.remove('active'), 1000);
+                setTimeout(() => {
+                    zoomHint.classList.remove('active');
+                    zoomHint.textContent = '雙指縮放調整視角';
+                }, 1000);
             }
             lastTap = now;
         });
@@ -988,8 +899,6 @@
         // ==================== 初始化 ====================
         
         function init() {
-            if (window.innerHeight > window.innerWidth) return;
-            
             updateUI();
             renderUnitCards();
             updateBaseAppearance();
